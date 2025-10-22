@@ -2,7 +2,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
-A beautiful, comprehensive dashboard for the [Cheapest Energy Windows](https://github.com/cew-hacs/cheapest_energy_windows) Home Assistant integration.
+A beautiful, comprehensive dashboard for the [Cheapest Energy Windows](https://github.com/cheapest-energy-windows/cheapest_energy_windows) Home Assistant integration.
 
 ![Dashboard Preview](CEW-Dashboard.jpg)
 
@@ -10,7 +10,7 @@ A beautiful, comprehensive dashboard for the [Cheapest Energy Windows](https://g
 
 This dashboard **requires** the main Cheapest Energy Windows integration to be installed first:
 
-1. Install the [Cheapest Energy Windows Integration](https://github.com/cew-hacs/cheapest_energy_windows) via HACS
+1. Install the [Cheapest Energy Windows Integration](https://github.com/cheapest-energy-windows/cheapest_energy_windows) via HACS
 2. Configure the integration with your Nord Pool sensor
 
 ## 🚀 Installation
@@ -20,7 +20,7 @@ This dashboard **requires** the main Cheapest Energy Windows integration to be i
 1. Open HACS in Home Assistant
 2. Click on "Frontend"
 3. Click the 3 dots menu (top right) → "Custom repositories"
-4. Add this repository URL: `https://github.com/cew-hacs/cheapest_energy_windows_dashboard`
+4. Add this repository URL: `https://github.com/cheapest-energy-windows/cheapest_energy_windows_dashboard`
 5. Select category: "Dashboard"
 6. Click "Add"
 7. Find "Cheapest Energy Windows Dashboard" in the list and click "Download"
@@ -94,7 +94,7 @@ This dashboard uses several custom Lovelace cards. Install these via HACS Fronte
 
 For issues specific to:
 - **This dashboard**: Open an issue in this repository
-- **The integration**: Visit the [main integration repository](https://github.com/cew-hacs/cheapest_energy_windows)
+- **The integration**: Visit the [main integration repository](https://github.com/cheapest-energy-windows/cheapest_energy_windows)
 
 ## 📝 License
 
