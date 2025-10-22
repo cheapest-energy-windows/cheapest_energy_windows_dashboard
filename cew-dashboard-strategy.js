@@ -4,7 +4,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
     return {
       "views": [
             {
-                  "title": "Home",
+                  "title": "Cheapest Energy Windows",
                   "sections": [
                         {
                               "type": "grid",
