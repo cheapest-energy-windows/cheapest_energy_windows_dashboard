@@ -4,6 +4,8 @@
 
 A beautiful, comprehensive dashboard for the [Cheapest Energy Windows](https://github.com/cew-hacs/cheapest_energy_windows) Home Assistant integration.
 
+![Dashboard Preview](CEW-Dashboard.jpg)
+
 ## 📋 Prerequisites
 
 This dashboard **requires** the main Cheapest Energy Windows integration to be installed first:
@@ -13,7 +15,7 @@ This dashboard **requires** the main Cheapest Energy Windows integration to be i
 
 ## 🚀 Installation
 
-### Via HACS (Recommended)
+### Via HACS
 
 1. Open HACS in Home Assistant
 2. Click on "Frontend"
@@ -22,53 +24,23 @@ This dashboard **requires** the main Cheapest Energy Windows integration to be i
 5. Select category: "Dashboard"
 6. Click "Add"
 7. Find "Cheapest Energy Windows Dashboard" in the list and click "Download"
-
-### Manual Installation
-
-1. Download `cew-dashboard-strategy.js` from this repository
-2. Copy it to `/config/www/` in your Home Assistant installation
-3. Go to Settings → Dashboards → Resources
-4. Click "+" to add a resource
-5. URL: `/local/cew-dashboard-strategy.js`
-6. Resource type: JavaScript Module
-7. Click "Create"
+8. The resource will be automatically added to your Home Assistant
 
 ## 📊 Usage
 
 ### Creating the Dashboard
 
-#### Method 1: Via configuration.yaml (Recommended)
-
-1. Edit your `/config/configuration.yaml` and add:
-
-```yaml
-lovelace:
-  mode: storage
-  dashboards:
-    lovelace-energy-windows:
-      mode: yaml
-      title: Energy Windows
-      icon: mdi:lightning-bolt
-      show_in_sidebar: true
-      filename: dashboards/energy_windows.yaml
-```
-
-2. Create the file `/config/dashboards/energy_windows.yaml`:
-
-```yaml
-strategy:
-  type: custom:dashboard-cheapest-energy-windows
-```
-
-3. Restart Home Assistant
-4. The dashboard will appear in your sidebar automatically!
-
-#### Method 2: Via Dashboard Raw Editor
-
-1. Create a new empty dashboard via Settings → Dashboards → Add Dashboard
-2. After creating it, click the ⋮ menu → "Edit Dashboard"
-3. Click ⋮ menu again → "Raw configuration editor"
-4. Replace all content with:
+1. Go to **Settings → Dashboards**
+2. Click **"+ Add Dashboard"** (bottom right)
+3. Fill in:
+   - **Title**: `Energy Windows` (or any name you prefer)
+   - **Icon**: `mdi:lightning-bolt` (optional)
+   - **URL**: `energy-windows` (or your preference)
+   - Toggle **"Show in sidebar"** ON
+4. Click **"Create"**
+5. After the dashboard is created, click the **⋮ menu** (three dots) → **"Edit Dashboard"**
+6. Click **⋮ menu** again → **"Raw configuration editor"**
+7. Replace all content with:
 
 ```yaml
 strategy:
@@ -76,8 +48,8 @@ strategy:
 views: []
 ```
 
-5. Click "Save"
-6. The dashboard will automatically load with all cards configured!
+8. Click **"Save"**
+9. The dashboard will automatically load with all cards configured! ✨
 
 ## ✨ Features
 
