@@ -20,7 +20,7 @@ This dashboard **requires** the main Cheapest Energy Windows integration to be i
 1. Open HACS in Home Assistant
 2. Click on "Frontend"
 3. Click the 3 dots menu (top right) → "Custom repositories"
-4. Add this repository URL: `https://github.com/YOUR_USERNAME/cheapest_energy_windows_dashboard`
+4. Add this repository URL: `https://github.com/cew-hacs/cheapest_energy_windows_dashboard`
 5. Select category: "Dashboard"
 6. Click "Add"
 7. Find "Cheapest Energy Windows Dashboard" in the list and click "Download"
@@ -70,10 +70,8 @@ This dashboard uses several custom Lovelace cards. Install these via HACS Fronte
 ### Required
 - [Mushroom Cards](https://github.com/piitaya/lovelace-mushroom)
 - [ApexCharts Card](https://github.com/RomRider/apexcharts-card)
-- [Card Mod](https://github.com/thomasloven/lovelace-card-mod)
-
-### Optional (for full functionality)
 - [Fold Entity Row](https://github.com/thomasloven/lovelace-fold-entity-row)
+- [Card Mod](https://github.com/thomasloven/lovelace-card-mod)
 
 ## 🐛 Troubleshooting
 
