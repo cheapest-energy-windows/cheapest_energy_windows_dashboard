@@ -1578,9 +1578,11 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
   }
 }
 
-customElements.define(
-  "ll-strategy-dashboard-cheapest-energy-windows",
-  CheapestEnergyWindowsStrategy
-);
+if (!customElements.get("ll-strategy-dashboard-cheapest-energy-windows")) {
+  customElements.define(
+    "ll-strategy-dashboard-cheapest-energy-windows",
+    CheapestEnergyWindowsStrategy
+  );
+}
 
 console.log("Cheapest Energy Windows dashboard strategy loaded");
