@@ -761,12 +761,12 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                                             {
                                                                   "type": "custom:mushroom-template-card",
                                                                   "primary": "Spread",
-                                                                  "secondary": "{{ state_attr('sensor.cew_tomorrow', 'spread_avg') | float(0) | round(1) }}%",
+                                                                  "secondary": "{{ state_attr('sensor.cew_tomorrow', 'spread_percentage') | float(0) | round(1) }}%",
                                                                   "icon": "mdi:percent",
                                                                   "tap_action": {
                                                                         "action": "none"
                                                                   },
-                                                                  "color": "{% if state_attr('sensor.cew_tomorrow', 'spread_avg') | float(0) >= 30 %}green\n{% elif state_attr('sensor.cew_tomorrow', 'spread_avg') | float(0) >= 15 %}orange\n{% else %}red\n{% endif %}\n",
+                                                                  "color": "{% if state_attr('sensor.cew_tomorrow', 'spread_percentage') | float(0) >= 30 %}green\n{% elif state_attr('sensor.cew_tomorrow', 'spread_percentage') | float(0) >= 15 %}orange\n{% else %}red\n{% endif %}\n",
                                                                   "vertical": true,
                                                                   "features_position": "bottom"
                                                             },
