@@ -330,13 +330,16 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                                       ]
                                                 },
                                                 {
-                                                      "type": "custom:fold-entity-row",
-                                                      "head": {
-                                                            "type": "section",
-                                                            "label": "\u2699\ufe0f Today's Settings (Active Now)"
-                                                      },
-                                                      "padding": 0,
+                                                      "type": "entities",
                                                       "entities": [
+                                                            {
+                                                                  "type": "custom:fold-entity-row",
+                                                                  "head": {
+                                                                        "type": "section",
+                                                                        "label": "\u2699\ufe0f Today's Settings (Active Now)"
+                                                                  },
+                                                                  "padding": 0,
+                                                                  "entities": [
                                                             {
                                                                   "type": "custom:fold-entity-row",
                                                                   "head": {
@@ -454,6 +457,8 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                                                               "name": "Window End Time"
                                                                         }
                                                                   ]
+                                                            }
+                                                      ]
                                                             }
                                                       ]
                                                 },
@@ -809,13 +814,16 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                                       ]
                                                 },
                                                 {
-                                                      "type": "custom:fold-entity-row",
-                                                      "head": {
-                                                            "type": "section",
-                                                            "label": "\ud83c\udf05 Tomorrow's Settings (Optional)"
-                                                      },
-                                                      "padding": 0,
+                                                      "type": "entities",
                                                       "entities": [
+                                                            {
+                                                                  "type": "custom:fold-entity-row",
+                                                                  "head": {
+                                                                        "type": "section",
+                                                                        "label": "\ud83c\udf05 Tomorrow's Settings (Optional)"
+                                                                  },
+                                                                  "padding": 0,
+                                                                  "entities": [
                                                             {
                                                                   "entity": "switch.cew_tomorrow_settings_enabled",
                                                                   "name": "Enable Tomorrow's Custom Settings",
@@ -959,6 +967,8 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                                                   ]
                                                             }
                                                       ]
+                                                            }
+                                                      ]
                                                 },
                                                 {
                                                       "type": "markdown",
@@ -1010,13 +1020,16 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                                       "features_position": "bottom"
                                                 },
                                                 {
-                                                      "type": "custom:fold-entity-row",
-                                                      "head": {
-                                                            "type": "section",
-                                                            "label": "\u2699\ufe0f Settings"
-                                                      },
-                                                      "padding": 0,
+                                                      "type": "entities",
                                                       "entities": [
+                                                            {
+                                                                  "type": "custom:fold-entity-row",
+                                                                  "head": {
+                                                                        "type": "section",
+                                                                        "label": "\u2699\ufe0f Settings"
+                                                                  },
+                                                                  "padding": 0,
+                                                                  "entities": [
                                                             {
                                                                   "type": "custom:fold-entity-row",
                                                                   "head": {
