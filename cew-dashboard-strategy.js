@@ -259,10 +259,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                                                   "labels": {
                                                                         "formatter": "EVAL:function(value) {\n  return '\u20ac' + value.toFixed(3);\n}\n",
                                                                         "style": {
-                                                                              "fontSize": "11px",
-                                                                              "colors": [
-                                                                                    "#ffffff"
-                                                                              ]
+                                                                              "fontSize": "11px"
                                                                         }
                                                                   }
                                                             }
@@ -612,12 +609,14 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                                                   "custom": "EVAL:function({seriesIndex, dataPointIndex, w}) {\n  const data = w.config.series[0].data[dataPointIndex];\n  const baseStyle = 'padding: 10px 12px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif;';\n  if (data.override && data.overrideMode === 'idle') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">\ud83d\udca4 Time Override: Idle</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced idle/smart meter mode</div></div>';\n  if (data.override && data.overrideMode === 'charge') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #a3e635 0%, #84cc16 100%); color: #1a2e05;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">\u26a1 Time Override: Charging</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced charging period</div></div>';\n  if (data.override && data.overrideMode === 'discharge') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">\ud83d\udd0c Time Override: Discharging</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced discharging period</div></div>';\n  if (data.override && data.overrideMode === 'discharge_aggressive') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">\u26a1 Time Override: Peak Discharge</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced aggressive discharge</div></div>';\n  if (data.cheap) return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">\ud83d\udd0b Charging Window</div><div style=\"font-size: 12px; opacity: 0.9;\">Cheap energy period</div></div>';\n  if (data.expensiveAggressive) return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">\u26a1 Peak Discharge</div><div style=\"font-size: 12px; opacity: 0.9;\">Maximum price opportunity</div></div>';\n  if (data.expensive) return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">\ud83d\udd0c Discharge Window</div><div style=\"font-size: 12px; opacity: 0.9;\">Elevated price period</div></div>';\n  return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">\ud83d\udca1 Normal Period</div><div style=\"font-size: 12px; opacity: 0.9;\">Smart meter mode</div></div>';\n}\n"
                                                             },
                                                             "noData": {
-                                                                  "text": "\ud83d\udcc5 Tomorrow's energy data will be available after 13:00 CET",
+                                                                  "text": ["\ud83d\udcc5 Becomes available", "between 13:00-15:00 CET"],
                                                                   "align": "center",
                                                                   "verticalAlign": "middle",
+                                                                  "offsetY": -15,
                                                                   "style": {
                                                                         "color": "#6b7280",
-                                                                        "fontSize": "16px",
+                                                                        "fontSize": "20px",
+                                                                        "fontWeight": "bold",
                                                                         "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
                                                                   }
                                                             }
@@ -728,20 +727,19 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                                                   "labels": {
                                                                         "formatter": "EVAL:function(value) {\n  return '\u20ac' + value.toFixed(3);\n}\n",
                                                                         "style": {
-                                                                              "fontSize": "11px",
-                                                                              "colors": [
-                                                                                    "#ffffff"
-                                                                              ]
+                                                                              "fontSize": "11px"
                                                                         }
                                                                   }
                                                             },
                                                             "noData": {
-                                                                  "text": "\ud83d\udcc5 Tomorrow's price data will be available after 13:00 CET",
+                                                                  "text": ["\ud83d\udcc5 Becomes available", "between 13:00-15:00 CET"],
                                                                   "align": "center",
                                                                   "verticalAlign": "middle",
+                                                                  "offsetY": -15,
                                                                   "style": {
                                                                         "color": "#6b7280",
-                                                                        "fontSize": "16px",
+                                                                        "fontSize": "20px",
+                                                                        "fontWeight": "bold",
                                                                         "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
                                                                   }
                                                             }
