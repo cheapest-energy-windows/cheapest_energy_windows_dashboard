@@ -1,7 +1,8 @@
 class CheapestEnergyWindowsStrategy extends HTMLElement {
   static async generate(info, entities) {
-    // Dashboard configuration
-    return {
+    try {
+      // Dashboard configuration
+      return {
       "views": [
             {
                   "title": "Cheapest Energy Windows",
@@ -1575,6 +1576,18 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
             }
       ]
 };
+    } catch (error) {
+      console.error("Error generating Cheapest Energy Windows dashboard:", error);
+      return {
+        views: [{
+          title: "Dashboard Error",
+          cards: [{
+            type: "markdown",
+            content: "⚠️ **Dashboard failed to load**\n\nCheck browser console (F12) for details.\n\nTry refreshing the page."
+          }]
+        }]
+      };
+    }
   }
 }
 
