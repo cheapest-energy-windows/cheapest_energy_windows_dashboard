@@ -468,9 +468,9 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           "sensor.cew_today"
                         ],
                         "card_mod": {
-                          "style": "ha-card {\n  min-height: 200px;\n}\n"
+                          "style": "ha-card { min-height: 200px; }"
                         },
-                        "content": "**⚡ Charge Windows** ({{ state_attr('sensor.cew_today', 'cheapest_times') | default([]) | length }} periods){% set times = state_attr('sensor.cew_today', 'cheapest_times') or [] %}{% set prices = state_attr('sensor.cew_today', 'cheapest_prices') or [] %}{% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %}{% set charge_power_kw = states('number.cew_charge_power') | float(0) / 1000 %}{% set total_cost = (prices | sum) * window_duration * charge_power_kw if prices else 0 %}{% if prices and prices | length > 0 %} • Cost: €{{ total_cost | round(2) }}{% endif %}\n{% if times and times | length > 0 %} {% set window_seconds = 3600 if states('select.cew_pricing_window_duration') == '1_hour' else 900 %} {% set ns = namespace(items=[], groups=[]) %} {% for i in range(times | length) %} {% set ns.items = ns.items + [{'time': as_timestamp(times[i]), 'price': prices[i]}] %} {% endfor %} {% set sorted_items = ns.items | sort(attribute='time') %} {% set ns = namespace(current_group={'start': sorted_items[0].time, 'end': sorted_items[0].time + window_seconds, 'prices': [sorted_items[0].price]}, groups=[]) %} {% for item in sorted_items[1:] %} {% if item.time == ns.current_group.end %} {% set ns.current_group = {'start': ns.current_group.start, 'end': item.time + window_seconds, 'prices': ns.current_group.prices + [item.price]} %} {% else %} {% set ns.groups = ns.groups + [ns.current_group] %} {% set ns.current_group = {'start': item.time, 'end': item.time + window_seconds, 'prices': [item.price]} %} {% endif %} {% endfor %} {% set ns.groups = ns.groups + [ns.current_group] %} {% for group in ns.groups %} **{{ group.start | timestamp_custom('%H:%M') }}-{{ group.end | timestamp_custom('%H:%M') }}** • Avg: €{{ (group.prices | sum / group.prices | length) | round(3) }}{% if not loop.last %}\n{% endif %} {% endfor %} {% else %} *No charge windows scheduled* {% endif %}\n&nbsp;\n**🔋 Discharge Windows** ({{ state_attr('sensor.cew_today', 'expensive_times') | default([]) | length }} periods){% set times = state_attr('sensor.cew_today', 'expensive_times') or [] %}{% set prices = state_attr('sensor.cew_today', 'expensive_prices') or [] %}{% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %}{% set discharge_power_kw = states('number.cew_discharge_power') | float(0) / 1000 %}{% set total_revenue = (prices | sum) * window_duration * discharge_power_kw if prices else 0 %}{% if prices and prices | length > 0 %} • Revenue: €{{ total_revenue | round(2) }}{% endif %}\n{% if times and times | length > 0 %} {% set window_seconds = 3600 if states('select.cew_pricing_window_duration') == '1_hour' else 900 %} {% set ns = namespace(items=[], groups=[]) %} {% for i in range(times | length) %} {% set ns.items = ns.items + [{'time': as_timestamp(times[i]), 'price': prices[i]}] %} {% endfor %} {% set sorted_items = ns.items | sort(attribute='time') %} {% set ns = namespace(current_group={'start': sorted_items[0].time, 'end': sorted_items[0].time + window_seconds, 'prices': [sorted_items[0].price]}, groups=[]) %} {% for item in sorted_items[1:] %} {% if item.time == ns.current_group.end %} {% set ns.current_group = {'start': ns.current_group.start, 'end': item.time + window_seconds, 'prices': ns.current_group.prices + [item.price]} %} {% else %} {% set ns.groups = ns.groups + [ns.current_group] %} {% set ns.current_group = {'start': item.time, 'end': item.time + window_seconds, 'prices': [item.price]} %} {% endif %} {% endfor %} {% set ns.groups = ns.groups + [ns.current_group] %} {% for group in ns.groups %} **{{ group.start | timestamp_custom('%H:%M') }}-{{ group.end | timestamp_custom('%H:%M') }}** • Avg: €{{ (group.prices | sum / group.prices | length) | round(3) }}{% if not loop.last %}\n{% endif %} {% endfor %} {% else %} *No discharge windows scheduled* {% endif %}"
+                        "content": "**⚡ Charge Windows** ({{ state_attr('sensor.cew_today', 'actual_charge_times') | default([]) | length }} periods){% set times = state_attr('sensor.cew_today', 'actual_charge_times') or [] %}{% set prices = state_attr('sensor.cew_today', 'actual_charge_prices') or [] %}{% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %}{% set charge_power_kw = states('number.cew_charge_power') | float(0) / 1000 %}{% set total_cost = (prices | sum) * window_duration * charge_power_kw if prices else 0 %}{% if prices and prices | length > 0 %} • Cost: €{{ total_cost | round(2) }}{% endif %}\n{% if times and times | length > 0 %} {% set window_seconds = 3600 if states('select.cew_pricing_window_duration') == '1_hour' else 900 %} {% set ns = namespace(items=[], groups=[]) %} {% for i in range(times | length) %} {% set ns.items = ns.items + [{'time': as_timestamp(times[i]), 'price': prices[i]}] %} {% endfor %} {% set sorted_items = ns.items | sort(attribute='time') %} {% set ns = namespace(current_group={'start': sorted_items[0].time, 'end': sorted_items[0].time + window_seconds, 'prices': [sorted_items[0].price]}, groups=[]) %} {% for item in sorted_items[1:] %} {% if item.time == ns.current_group.end %} {% set ns.current_group = {'start': ns.current_group.start, 'end': item.time + window_seconds, 'prices': ns.current_group.prices + [item.price]} %} {% else %} {% set ns.groups = ns.groups + [ns.current_group] %} {% set ns.current_group = {'start': item.time, 'end': item.time + window_seconds, 'prices': [item.price]} %} {% endif %} {% endfor %} {% set ns.groups = ns.groups + [ns.current_group] %} {% for group in ns.groups %} **{{ group.start | timestamp_custom('%H:%M') }}-{{ group.end | timestamp_custom('%H:%M') }}** • Avg: €{{ (group.prices | sum / group.prices | length) | round(3) }}{% if not loop.last %}\n{% endif %} {% endfor %} {% else %} *No charge windows scheduled* {% endif %}\n&nbsp;\n**🔋 Discharge Windows** ({{ state_attr('sensor.cew_today', 'actual_discharge_times') | default([]) | length }} periods){% set times = state_attr('sensor.cew_today', 'actual_discharge_times') or [] %}{% set prices = state_attr('sensor.cew_today', 'actual_discharge_prices') or [] %}{% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %}{% set discharge_power_kw = states('number.cew_discharge_power') | float(0) / 1000 %}{% set total_revenue = (prices | sum) * window_duration * discharge_power_kw if prices else 0 %}{% if prices and prices | length > 0 %} • Revenue: €{{ total_revenue | round(2) }}{% endif %}\n{% if times and times | length > 0 %} {% set window_seconds = 3600 if states('select.cew_pricing_window_duration') == '1_hour' else 900 %} {% set ns = namespace(items=[], groups=[]) %} {% for i in range(times | length) %} {% set ns.items = ns.items + [{'time': as_timestamp(times[i]), 'price': prices[i]}] %} {% endfor %} {% set sorted_items = ns.items | sort(attribute='time') %} {% set ns = namespace(current_group={'start': sorted_items[0].time, 'end': sorted_items[0].time + window_seconds, 'prices': [sorted_items[0].price]}, groups=[]) %} {% for item in sorted_items[1:] %} {% if item.time == ns.current_group.end %} {% set ns.current_group = {'start': ns.current_group.start, 'end': item.time + window_seconds, 'prices': ns.current_group.prices + [item.price]} %} {% else %} {% set ns.groups = ns.groups + [ns.current_group] %} {% set ns.current_group = {'start': item.time, 'end': item.time + window_seconds, 'prices': [item.price]} %} {% endif %} {% endfor %} {% set ns.groups = ns.groups + [ns.current_group] %} {% for group in ns.groups %} **{{ group.start | timestamp_custom('%H:%M') }}-{{ group.end | timestamp_custom('%H:%M') }}** • Avg: €{{ (group.prices | sum / group.prices | length) | round(3) }}{% if not loop.last %}\n{% endif %} {% endfor %} {% else %} *No discharge windows scheduled* {% endif %}"
                       }
                     ]
                   }
@@ -741,19 +741,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                             }
                           },
                           "noData": {
-                            "text": [
-                              "📅 Becomes available",
-                              "between 13:00-15:00 CET"
-                            ],
-                            "align": "center",
-                            "verticalAlign": "middle",
-                            "offsetY": -15,
-                            "style": {
-                              "color": "#6b7280",
-                              "fontSize": "20px",
-                              "fontWeight": "bold",
-                              "fontFamily": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif"
-                            }
+                            "text": ""
                           }
                         },
                         "series": [
@@ -785,33 +773,33 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           {
                             "type": "custom:mushroom-template-card",
                             "primary": "Charge",
-                            "secondary": "{% set total = state_attr('sensor.cew_tomorrow', 'cheapest_times') | default([]) | length %}0/{{ total }}",
+                            "secondary": "{% set total = state_attr('sensor.cew_tomorrow', 'actual_charge_times') | default([]) | length %}0/{{ total }}",
                             "icon": "mdi:battery-charging",
                             "tap_action": {
                               "action": "none"
                             },
-                            "color": "{% if state_attr('sensor.cew_tomorrow', 'cheapest_times') | default([]) | length > 0 %}green\n{% else %}grey\n{% endif %}\n",
+                            "color": "{% if state_attr('sensor.cew_tomorrow', 'actual_charge_times') | default([]) | length > 0 %}green\n{% else %}grey\n{% endif %}\n",
                             "vertical": true,
                             "features_position": "bottom"
                           },
                           {
                             "type": "custom:mushroom-template-card",
                             "primary": "Discharge",
-                            "secondary": "{% set total = state_attr('sensor.cew_tomorrow', 'expensive_times') | default([]) | length %}0/{{ total }}",
+                            "secondary": "{% set total = state_attr('sensor.cew_tomorrow', 'actual_discharge_times') | default([]) | length %}0/{{ total }}",
                             "icon": "mdi:battery-minus",
                             "tap_action": {
                               "action": "none"
                             },
-                            "color": "{% set count = state_attr('sensor.cew_tomorrow', 'expensive_times') | default([]) | length %}\n{% if count > 0 %}orange\n{% else %}grey\n{% endif %}\n",
+                            "color": "{% set count = state_attr('sensor.cew_tomorrow', 'actual_discharge_times') | default([]) | length %}\n{% if count > 0 %}orange\n{% else %}grey\n{% endif %}\n",
                             "vertical": true,
                             "features_position": "bottom"
                           },
                           {
                             "type": "custom:mushroom-template-card",
                             "primary": "Daily Net Cost",
-                            "secondary": "{% set num_cheap = state_attr('sensor.cew_tomorrow', 'cheapest_times') | default([]) | length %}\n{% set num_expensive = state_attr('sensor.cew_tomorrow', 'expensive_times') | default([]) | length %}\n{% set avg_cheap = state_attr('sensor.cew_tomorrow', 'avg_cheap_price') | float(0) %}\n{% set avg_expensive = state_attr('sensor.cew_tomorrow', 'avg_expensive_price') | float(0) %}\n{% set charge_power = states('number.cew_charge_power') | float(0) / 1000 %}\n{% set discharge_power = states('number.cew_discharge_power') | float(0) / 1000 %}\n{% set rte = states('number.cew_battery_rte') | float(90) / 100 %}\n{% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %}\n{% set charged_kwh = num_cheap * window_duration * charge_power %}\n{% set usable_kwh = charged_kwh * rte %}\n{% set discharged_kwh = num_expensive * window_duration * discharge_power %}\n{% set actual_discharged = discharged_kwh %}\n{% set charge_cost = charged_kwh * avg_cheap %}\n{% set discharge_revenue = actual_discharged * avg_expensive %}\n{% set net_cost = charge_cost - discharge_revenue %}\n{{ '€' + (net_cost | round(2) | string) }}",
+                            "secondary": "{% set num_cheap = state_attr('sensor.cew_tomorrow', 'actual_charge_times') | default([]) | length %}\n{% set num_expensive = state_attr('sensor.cew_tomorrow', 'actual_discharge_times') | default([]) | length %}\n{% set avg_cheap = state_attr('sensor.cew_tomorrow', 'avg_cheap_price') | float(0) %}\n{% set avg_expensive = state_attr('sensor.cew_tomorrow', 'avg_expensive_price') | float(0) %}\n{% set charge_power = states('number.cew_charge_power') | float(0) / 1000 %}\n{% set discharge_power = states('number.cew_discharge_power') | float(0) / 1000 %}\n{% set rte = states('number.cew_battery_rte') | float(90) / 100 %}\n{% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %}\n{% set charged_kwh = num_cheap * window_duration * charge_power %}\n{% set usable_kwh = charged_kwh * rte %}\n{% set discharged_kwh = num_expensive * window_duration * discharge_power %}\n{% set actual_discharged = discharged_kwh %}\n{% set charge_cost = charged_kwh * avg_cheap %}\n{% set discharge_revenue = actual_discharged * avg_expensive %}\n{% set net_cost = charge_cost - discharge_revenue %}\n{{ '€' + (net_cost | round(2) | string) }}",
                             "icon": "mdi:currency-eur",
-                            "icon_color": "{% set num_cheap = state_attr('sensor.cew_tomorrow', 'cheapest_times') | default([]) | length %}\n{% set num_expensive = state_attr('sensor.cew_tomorrow', 'expensive_times') | default([]) | length %}\n{% set avg_cheap = state_attr('sensor.cew_tomorrow', 'avg_cheap_price') | float(0) %}\n{% set avg_expensive = state_attr('sensor.cew_tomorrow', 'avg_expensive_price') | float(0) %}\n{% set charge_power = states('number.cew_charge_power') | float(0) / 1000 %}\n{% set discharge_power = states('number.cew_discharge_power') | float(0) / 1000 %}\n{% set rte = states('number.cew_battery_rte') | float(90) / 100 %}\n{% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %}\n{% set charged_kwh = num_cheap * window_duration * charge_power %}\n{% set usable_kwh = charged_kwh * rte %}\n{% set discharged_kwh = num_expensive * window_duration * discharge_power %}\n{% set actual_discharged = discharged_kwh %}\n{% set charge_cost = charged_kwh * avg_cheap %}\n{% set discharge_revenue = actual_discharged * avg_expensive %}\n{% set net_cost = charge_cost - discharge_revenue %}\n{% if net_cost < 0 %}green\n{% elif net_cost > 0 %}red\n{% else %}grey\n{% endif %}\n",
+                            "icon_color": "{% set num_cheap = state_attr('sensor.cew_tomorrow', 'actual_charge_times') | default([]) | length %}\n{% set num_expensive = state_attr('sensor.cew_tomorrow', 'actual_discharge_times') | default([]) | length %}\n{% set avg_cheap = state_attr('sensor.cew_tomorrow', 'avg_cheap_price') | float(0) %}\n{% set avg_expensive = state_attr('sensor.cew_tomorrow', 'avg_expensive_price') | float(0) %}\n{% set charge_power = states('number.cew_charge_power') | float(0) / 1000 %}\n{% set discharge_power = states('number.cew_discharge_power') | float(0) / 1000 %}\n{% set rte = states('number.cew_battery_rte') | float(90) / 100 %}\n{% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %}\n{% set charged_kwh = num_cheap * window_duration * charge_power %}\n{% set usable_kwh = charged_kwh * rte %}\n{% set discharged_kwh = num_expensive * window_duration * discharge_power %}\n{% set actual_discharged = discharged_kwh %}\n{% set charge_cost = charged_kwh * avg_cheap %}\n{% set discharge_revenue = actual_discharged * avg_expensive %}\n{% set net_cost = charge_cost - discharge_revenue %}\n{% if net_cost < 0 %}green\n{% elif net_cost > 0 %}red\n{% else %}grey\n{% endif %}\n",
                             "layout": "vertical",
                             "tap_action": {
                               "action": "none"
@@ -971,9 +959,9 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           "sensor.cew_tomorrow"
                         ],
                         "card_mod": {
-                          "style": "ha-card {\n  min-height: 200px;\n}\n"
+                          "style": "ha-card { min-height: 200px; }"
                         },
-                        "content": "**⚡ Charge Windows** ({{ (state_attr('sensor.cew_tomorrow', 'cheapest_times') or []) | length }} periods){% set times = state_attr('sensor.cew_tomorrow', 'cheapest_times') or [] %}{% set prices = state_attr('sensor.cew_tomorrow', 'cheapest_prices') or [] %}{% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %}{% set charge_power_kw = states('number.cew_charge_power') | float(0) / 1000 %}{% set total_cost = (prices | sum) * window_duration * charge_power_kw if prices else 0 %}{% if prices | length > 0 %} • Cost: €{{ total_cost | round(2) }}{% endif %}\n{% if times | length > 0 %} {% set window_seconds = 3600 if states('select.cew_pricing_window_duration') == '1_hour' else 900 %} {% set ns = namespace(items=[], groups=[]) %} {% for i in range(times | length) %} {% set ns.items = ns.items + [{'time': as_timestamp(times[i]), 'price': prices[i]}] %} {% endfor %} {% set sorted_items = ns.items | sort(attribute='time') %} {% set ns = namespace(current_group={'start': sorted_items[0].time, 'end': sorted_items[0].time + window_seconds, 'prices': [sorted_items[0].price]}, groups=[]) %} {% for item in sorted_items[1:] %} {% if item.time == ns.current_group.end %} {% set ns.current_group = {'start': ns.current_group.start, 'end': item.time + window_seconds, 'prices': ns.current_group.prices + [item.price]} %} {% else %} {% set ns.groups = ns.groups + [ns.current_group] %} {% set ns.current_group = {'start': item.time, 'end': item.time + window_seconds, 'prices': [item.price]} %} {% endif %} {% endfor %} {% set ns.groups = ns.groups + [ns.current_group] %} {% for group in ns.groups %} **{{ group.start | timestamp_custom('%H:%M') }}-{{ group.end | timestamp_custom('%H:%M') }}** • Avg: €{{ (group.prices | sum / group.prices | length) | round(3) }}{% if not loop.last %}\n{% endif %} {% endfor %} {% else %} *No charge windows scheduled* {% endif %}\n&nbsp;\n**🔋 Discharge Windows** ({{ (state_attr('sensor.cew_tomorrow', 'expensive_times') or []) | length }} periods){% set times = state_attr('sensor.cew_tomorrow', 'expensive_times') or [] %}{% set prices = state_attr('sensor.cew_tomorrow', 'expensive_prices') or [] %}{% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %}{% set discharge_power_kw = states('number.cew_discharge_power') | float(0) / 1000 %}{% set total_revenue = (prices | sum) * window_duration * discharge_power_kw if prices else 0 %}{% if prices | length > 0 %} • Revenue: €{{ total_revenue | round(2) }}{% endif %}\n{% if times | length > 0 %} {% set window_seconds = 3600 if states('select.cew_pricing_window_duration') == '1_hour' else 900 %} {% set ns = namespace(items=[], groups=[]) %} {% for i in range(times | length) %} {% set ns.items = ns.items + [{'time': as_timestamp(times[i]), 'price': prices[i]}] %} {% endfor %} {% set sorted_items = ns.items | sort(attribute='time') %} {% set ns = namespace(current_group={'start': sorted_items[0].time, 'end': sorted_items[0].time + window_seconds, 'prices': [sorted_items[0].price]}, groups=[]) %} {% for item in sorted_items[1:] %} {% if item.time == ns.current_group.end %} {% set ns.current_group = {'start': ns.current_group.start, 'end': item.time + window_seconds, 'prices': ns.current_group.prices + [item.price]} %} {% else %} {% set ns.groups = ns.groups + [ns.current_group] %} {% set ns.current_group = {'start': item.time, 'end': item.time + window_seconds, 'prices': [item.price]} %} {% endif %} {% endfor %} {% set ns.groups = ns.groups + [ns.current_group] %} {% for group in ns.groups %} **{{ group.start | timestamp_custom('%H:%M') }}-{{ group.end | timestamp_custom('%H:%M') }}** • Avg: €{{ (group.prices | sum / group.prices | length) | round(3) }}{% if not loop.last %}\n{% endif %} {% endfor %} {% else %} *No discharge windows scheduled* {% endif %}"
+                        "content": "**⚡ Charge Windows** ({{ (state_attr('sensor.cew_tomorrow', 'actual_charge_times') or []) | length }} periods){% set times = state_attr('sensor.cew_tomorrow', 'actual_charge_times') or [] %}{% set prices = state_attr('sensor.cew_tomorrow', 'actual_charge_prices') or [] %}{% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %}{% set charge_power_kw = states('number.cew_charge_power') | float(0) / 1000 %}{% set total_cost = (prices | sum) * window_duration * charge_power_kw if prices else 0 %}{% if prices | length > 0 %} • Cost: €{{ total_cost | round(2) }}{% endif %}\n{% if times | length > 0 %} {% set window_seconds = 3600 if states('select.cew_pricing_window_duration') == '1_hour' else 900 %} {% set ns = namespace(items=[], groups=[]) %} {% for i in range(times | length) %} {% set ns.items = ns.items + [{'time': as_timestamp(times[i]), 'price': prices[i]}] %} {% endfor %} {% set sorted_items = ns.items | sort(attribute='time') %} {% set ns = namespace(current_group={'start': sorted_items[0].time, 'end': sorted_items[0].time + window_seconds, 'prices': [sorted_items[0].price]}, groups=[]) %} {% for item in sorted_items[1:] %} {% if item.time == ns.current_group.end %} {% set ns.current_group = {'start': ns.current_group.start, 'end': item.time + window_seconds, 'prices': ns.current_group.prices + [item.price]} %} {% else %} {% set ns.groups = ns.groups + [ns.current_group] %} {% set ns.current_group = {'start': item.time, 'end': item.time + window_seconds, 'prices': [item.price]} %} {% endif %} {% endfor %} {% set ns.groups = ns.groups + [ns.current_group] %} {% for group in ns.groups %} **{{ group.start | timestamp_custom('%H:%M') }}-{{ group.end | timestamp_custom('%H:%M') }}** • Avg: €{{ (group.prices | sum / group.prices | length) | round(3) }}{% if not loop.last %}\n{% endif %} {% endfor %} {% else %} *No charge windows scheduled* {% endif %}\n&nbsp;\n**🔋 Discharge Windows** ({{ (state_attr('sensor.cew_tomorrow', 'actual_discharge_times') or []) | length }} periods){% set times = state_attr('sensor.cew_tomorrow', 'actual_discharge_times') or [] %}{% set prices = state_attr('sensor.cew_tomorrow', 'actual_discharge_prices') or [] %}{% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %}{% set discharge_power_kw = states('number.cew_discharge_power') | float(0) / 1000 %}{% set total_revenue = (prices | sum) * window_duration * discharge_power_kw if prices else 0 %}{% if prices | length > 0 %} • Revenue: €{{ total_revenue | round(2) }}{% endif %}\n{% if times | length > 0 %} {% set window_seconds = 3600 if states('select.cew_pricing_window_duration') == '1_hour' else 900 %} {% set ns = namespace(items=[], groups=[]) %} {% for i in range(times | length) %} {% set ns.items = ns.items + [{'time': as_timestamp(times[i]), 'price': prices[i]}] %} {% endfor %} {% set sorted_items = ns.items | sort(attribute='time') %} {% set ns = namespace(current_group={'start': sorted_items[0].time, 'end': sorted_items[0].time + window_seconds, 'prices': [sorted_items[0].price]}, groups=[]) %} {% for item in sorted_items[1:] %} {% if item.time == ns.current_group.end %} {% set ns.current_group = {'start': ns.current_group.start, 'end': item.time + window_seconds, 'prices': ns.current_group.prices + [item.price]} %} {% else %} {% set ns.groups = ns.groups + [ns.current_group] %} {% set ns.current_group = {'start': item.time, 'end': item.time + window_seconds, 'prices': [item.price]} %} {% endif %} {% endfor %} {% set ns.groups = ns.groups + [ns.current_group] %} {% for group in ns.groups %} **{{ group.start | timestamp_custom('%H:%M') }}-{{ group.end | timestamp_custom('%H:%M') }}** • Avg: €{{ (group.prices | sum / group.prices | length) | round(3) }}{% if not loop.last %}\n{% endif %} {% endfor %} {% else %} *No discharge windows scheduled* {% endif %}"
                       }
                     ]
                   }
@@ -989,6 +977,16 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         "type": "custom:mushroom-title-card",
                         "title": "⚙️ Configuration & Status",
                         "subtitle": "Current pricing and system settings"
+                      },
+                      {
+                        "type": "custom:mushroom-template-card",
+                        "primary": "",
+                        "secondary": "",
+                        "icon": "",
+                        "features_position": "bottom",
+                        "card_mod": {
+                          "style": "ha-card { box-shadow: none; background: none; }"
+                        }
                       },
                       {
                         "type": "custom:mushroom-entity-card",
@@ -1013,6 +1011,16 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         "badge_color": "{% if state_attr('sensor.cew_today', 'price_override_active') %}lime\n{% endif %}\n",
                         "color": "{% set state = states('sensor.cew_today') %}\n{% set price_override = state_attr('sensor.cew_today', 'price_override_active') %}\n{% if state == 'off' %}grey\n{% elif state == 'charge' and price_override %}lime\n{% elif state == 'charge' %}green\n{% elif state == 'discharge_aggressive' %}red\n{% elif state == 'discharge' %}orange\n{% else %}blue\n{% endif %}\n",
                         "features_position": "bottom"
+                      },
+                      {
+                        "type": "custom:mushroom-template-card",
+                        "primary": "",
+                        "secondary": "",
+                        "icon": "",
+                        "features_position": "bottom",
+                        "card_mod": {
+                          "style": "ha-card { box-shadow: none; background: none; }"
+                        }
                       },
                       {
                         "type": "entities",
@@ -1212,7 +1220,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         "icon": "",
                         "features_position": "bottom",
                         "card_mod": {
-                          "style": "ha-card {\n  box-shadow: none;\n  background: none;\n}\n"
+                          "style": "ha-card { box-shadow: none; background: none; }"
                         }
                       },
                       {
@@ -1299,7 +1307,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         "icon": "",
                         "features_position": "bottom",
                         "card_mod": {
-                          "style": "ha-card {\n  box-shadow: none;\n  background: none;\n}\n"
+                          "style": "ha-card { box-shadow: none; background: none; }"
                         }
                       },
                       {
@@ -1389,7 +1397,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         "icon": "",
                         "features_position": "bottom",
                         "card_mod": {
-                          "style": "ha-card {\n  box-shadow: none;\n  background: none;\n}\n"
+                          "style": "ha-card { box-shadow: none; background: none; }"
                         }
                       },
                       {
@@ -1414,7 +1422,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                 "type": "custom:mushroom-template-card",
                                 "entity": "sensor.cew_tomorrow",
                                 "primary": "Planned Charging",
-                                "secondary": "{% set num_cheap = state_attr('sensor.cew_tomorrow', 'cheapest_times') | default([]) | length %} {% set charge_power = states('number.cew_charge_power') | float(0) / 1000 %} {% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %} {% set charged_kwh = num_cheap * window_duration * charge_power %} {{ charged_kwh | round(2) }} kWh (0/{{ num_cheap }})",
+                                "secondary": "{% set num_cheap = state_attr('sensor.cew_tomorrow', 'actual_charge_times') | default([]) | length %} {% set charge_power = states('number.cew_charge_power') | float(0) / 1000 %} {% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %} {% set charged_kwh = num_cheap * window_duration * charge_power %} {{ charged_kwh | round(2) }} kWh (0/{{ num_cheap }})",
                                 "icon": "mdi:battery-charging",
                                 "color": "green",
                                 "tap_action": {
@@ -1425,7 +1433,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                 "type": "custom:mushroom-template-card",
                                 "entity": "sensor.cew_tomorrow",
                                 "primary": "Usable Energy",
-                                "secondary": "{% set num_cheap = state_attr('sensor.cew_tomorrow', 'cheapest_times') | default([]) | length %} {% set charge_power = states('number.cew_charge_power') | float(0) / 1000 %} {% set rte = states('number.cew_battery_rte') | float(90) / 100 %} {% set rte_pct = states('number.cew_battery_rte') | float(90) %} {% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %} {% set charged_kwh = num_cheap * window_duration * charge_power %} {% set usable_charged_kwh = charged_kwh * rte %} {{ usable_charged_kwh | round(2) }} kWh ({{ rte_pct | round(0) }}% RTE)",
+                                "secondary": "{% set num_cheap = state_attr('sensor.cew_tomorrow', 'actual_charge_times') | default([]) | length %} {% set charge_power = states('number.cew_charge_power') | float(0) / 1000 %} {% set rte = states('number.cew_battery_rte') | float(90) / 100 %} {% set rte_pct = states('number.cew_battery_rte') | float(90) %} {% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %} {% set charged_kwh = num_cheap * window_duration * charge_power %} {% set usable_charged_kwh = charged_kwh * rte %} {{ usable_charged_kwh | round(2) }} kWh ({{ rte_pct | round(0) }}% RTE)",
                                 "icon": "mdi:battery-check",
                                 "badge_icon": "mdi:percent",
                                 "badge_color": "blue",
@@ -1438,7 +1446,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                 "type": "custom:mushroom-template-card",
                                 "entity": "sensor.cew_tomorrow",
                                 "primary": "Planned Discharge",
-                                "secondary": "{% set num_expensive = state_attr('sensor.cew_tomorrow', 'expensive_times') | default([]) | length %} {% set discharge_power = states('number.cew_discharge_power') | float(0) / 1000 %} {% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %} {% set discharged_kwh = num_expensive * window_duration * discharge_power %} {{ discharged_kwh | round(2) }} kWh (0/{{ num_expensive }})",
+                                "secondary": "{% set num_expensive = state_attr('sensor.cew_tomorrow', 'actual_discharge_times') | default([]) | length %} {% set discharge_power = states('number.cew_discharge_power') | float(0) / 1000 %} {% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %} {% set discharged_kwh = num_expensive * window_duration * discharge_power %} {{ discharged_kwh | round(2) }} kWh (0/{{ num_expensive }})",
                                 "icon": "mdi:battery-minus",
                                 "color": "orange",
                                 "tap_action": {
@@ -1449,7 +1457,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                 "type": "custom:mushroom-template-card",
                                 "entity": "sensor.cew_tomorrow",
                                 "primary": "Net kWh Available",
-                                "secondary": "{% set num_cheap = state_attr('sensor.cew_tomorrow', 'cheapest_times') | default([]) | length %} {% set num_expensive = state_attr('sensor.cew_tomorrow', 'expensive_times') | default([]) | length %} {% set charge_power = states('number.cew_charge_power') | float(0) / 1000 %} {% set discharge_power = states('number.cew_discharge_power') | float(0) / 1000 %} {% set rte = states('number.cew_battery_rte') | float(90) / 100 %} {% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %} {% set charged_kwh = num_cheap * window_duration * charge_power %} {% set usable_kwh = charged_kwh * rte %} {% set discharged_kwh = num_expensive * window_duration * discharge_power %} {% set net_kwh = usable_kwh - discharged_kwh %} {{ net_kwh | round(2) }} kWh",
+                                "secondary": "{% set num_cheap = state_attr('sensor.cew_tomorrow', 'actual_charge_times') | default([]) | length %} {% set num_expensive = state_attr('sensor.cew_tomorrow', 'actual_discharge_times') | default([]) | length %} {% set charge_power = states('number.cew_charge_power') | float(0) / 1000 %} {% set discharge_power = states('number.cew_discharge_power') | float(0) / 1000 %} {% set rte = states('number.cew_battery_rte') | float(90) / 100 %} {% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %} {% set charged_kwh = num_cheap * window_duration * charge_power %} {% set usable_kwh = charged_kwh * rte %} {% set discharged_kwh = num_expensive * window_duration * discharge_power %} {% set net_kwh = usable_kwh - discharged_kwh %} {{ net_kwh | round(2) }} kWh",
                                 "icon": "mdi:battery-heart",
                                 "color": "cyan",
                                 "tap_action": {
@@ -1460,9 +1468,9 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                 "type": "custom:mushroom-template-card",
                                 "entity": "sensor.cew_tomorrow",
                                 "primary": "Net Price",
-                                "secondary": "{% set num_cheap = state_attr('sensor.cew_tomorrow', 'cheapest_times') | default([]) | length %} {% set num_expensive = state_attr('sensor.cew_tomorrow', 'expensive_times') | default([]) | length %} {% set avg_cheap = state_attr('sensor.cew_tomorrow', 'avg_cheap_price') | float(0) %} {% set avg_expensive = state_attr('sensor.cew_tomorrow', 'avg_expensive_price') | float(0) %} {% set charge_power = states('number.cew_charge_power') | float(0) / 1000 %} {% set discharge_power = states('number.cew_discharge_power') | float(0) / 1000 %} {% set rte = states('number.cew_battery_rte') | float(90) / 100 %} {% set pricing_mode = states('select.cew_pricing_window_duration') | default('15_minutes') %} {% set window_duration = 1.0 if pricing_mode == '1_hour' else 0.25 %} {% set charged_kwh = num_cheap * window_duration * charge_power %} {% set usable_kwh = charged_kwh * rte %} {% if num_expensive > 0 %}\n  {% set discharged_kwh = num_expensive * window_duration * discharge_power %}\n  {% set charge_cost = charged_kwh * avg_cheap %}\n  {% set discharge_revenue = discharged_kwh * avg_expensive %}\n  {% set net_cost = charge_cost - discharge_revenue %}\n  {% set net_kwh = usable_kwh - discharged_kwh %}\n  {% set net_price = (net_cost / (net_kwh | abs)) if net_kwh != 0 else (avg_expensive - avg_cheap) %}\n{% elif num_cheap > 0 %}\n  {% set net_price = avg_cheap / rte %}\n{% else %}\n  {% set net_price = 0 %}\n{% endif %} €{{ net_price | round(3) }}/kWh",
+                                "secondary": "{% set num_cheap = state_attr('sensor.cew_tomorrow', 'actual_charge_times') | default([]) | length %} {% set num_expensive = state_attr('sensor.cew_tomorrow', 'actual_discharge_times') | default([]) | length %} {% set avg_cheap = state_attr('sensor.cew_tomorrow', 'avg_cheap_price') | float(0) %} {% set avg_expensive = state_attr('sensor.cew_tomorrow', 'avg_expensive_price') | float(0) %} {% set charge_power = states('number.cew_charge_power') | float(0) / 1000 %} {% set discharge_power = states('number.cew_discharge_power') | float(0) / 1000 %} {% set rte = states('number.cew_battery_rte') | float(90) / 100 %} {% set pricing_mode = states('select.cew_pricing_window_duration') | default('15_minutes') %} {% set window_duration = 1.0 if pricing_mode == '1_hour' else 0.25 %} {% set charged_kwh = num_cheap * window_duration * charge_power %} {% set usable_kwh = charged_kwh * rte %} {% if num_expensive > 0 %}\n  {% set discharged_kwh = num_expensive * window_duration * discharge_power %}\n  {% set charge_cost = charged_kwh * avg_cheap %}\n  {% set discharge_revenue = discharged_kwh * avg_expensive %}\n  {% set net_cost = charge_cost - discharge_revenue %}\n  {% set net_kwh = usable_kwh - discharged_kwh %}\n  {% set net_price = (net_cost / (net_kwh | abs)) if net_kwh != 0 else (avg_expensive - avg_cheap) %}\n{% elif num_cheap > 0 %}\n  {% set net_price = avg_cheap / rte %}\n{% else %}\n  {% set net_price = 0 %}\n{% endif %} €{{ net_price | round(3) }}/kWh",
                                 "icon": "mdi:currency-eur",
-                                "color": "{% set num_cheap = state_attr('sensor.cew_tomorrow', 'cheapest_times') | default([]) | length %} {% if num_cheap > 0 %}green{% else %}grey{% endif %}",
+                                "color": "{% set num_cheap = state_attr('sensor.cew_tomorrow', 'actual_charge_times') | default([]) | length %} {% if num_cheap > 0 %}green{% else %}grey{% endif %}",
                                 "tap_action": {
                                   "action": "none"
                                 }
@@ -1470,6 +1478,16 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                             ]
                           }
                         ]
+                      },
+                      {
+                        "type": "custom:mushroom-template-card",
+                        "primary": "",
+                        "secondary": "",
+                        "icon": "",
+                        "features_position": "bottom",
+                        "card_mod": {
+                          "style": "ha-card { box-shadow: none; background: none; }"
+                        }
                       }
                     ]
                   }
