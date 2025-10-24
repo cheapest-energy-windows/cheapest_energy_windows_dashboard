@@ -114,7 +114,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                             }
                           },
                           "stroke": {
-                            "show": true,
+                            "show": false,
                             "width": 1,
                             "colors": [
                               "rgba(255, 255, 255, 0.25)"
@@ -125,7 +125,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           },
                           "grid": {
                             "show": true,
-                            "borderColor": "#e5e7eb",
+                            "borderColor": "#6b7280",
                             "strokeDashArray": 4,
                             "position": "back",
                             "xaxis": {
@@ -135,7 +135,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                             },
                             "yaxis": {
                               "lines": {
-                                "show": false
+                                "show": true
                               }
                             },
                             "padding": {
@@ -175,6 +175,9 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           "show": false
                         },
                         "update_interval": "12s",
+                        "experimental": {
+                          "color_threshold": true
+                        },
                         "apex_config": {
                           "chart": {
                             "height": 240,
@@ -216,7 +219,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           },
                           "grid": {
                             "show": true,
-                            "borderColor": "#f0f0f0",
+                            "borderColor": "#6b7280",
                             "strokeDashArray": 3,
                             "position": "back",
                             "xaxis": {
@@ -270,8 +273,31 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                             "entity": "sensor.nordpool_kwh_nl_eur_3_10_0",
                             "name": "Price",
                             "type": "area",
+                            "color_threshold": [
+                              {
+                                "value": 0,
+                                "color": "green"
+                              },
+                              {
+                                "value": 0.15,
+                                "color": "lightgreen"
+                              },
+                              {
+                                "value": 0.2,
+                                "color": "yellow"
+                              },
+                              {
+                                "value": 0.35,
+                                "color": "red"
+                              },
+                              {
+                                "value": 0.5,
+                                "color": "purple"
+                              }
+                            ],
+                            "curve": "stepline",
                             "stroke_width": 2,
-                            "color": "#3b82f6",
+                            "float_precision": 3,
                             "data_generator": "const sensorName = hass.states['text.cew_price_sensor_entity']?.state || 'sensor.nordpool_kwh_nl_eur_3_10_0'; const nordpool = hass.states[sensorName];\nif (!nordpool?.attributes?.raw_today) return [];\nconst pricingMode = hass.states['select.cew_pricing_window_duration']?.state || '15_minutes';\nconst add = parseFloat(hass.states['number.cew_additional_cost'].state) || 0.02398;\nconst tax = parseFloat(hass.states['number.cew_tax'].state) || 0.12286;\nconst vat = hass.states['number.cew_vat']?.state !== undefined ? parseFloat(hass.states['number.cew_vat'].state) : 0.21;\nlet rawData = nordpool.attributes.raw_today;\nif (pricingMode === '1_hour') {\n  const hourlyData = {};\n  rawData.forEach(item => {\n    const time = new Date(item.start).getTime();\n    const hourStart = Math.floor(time / 3600000) * 3600000;\n    if (!hourlyData[hourStart]) {\n      hourlyData[hourStart] = { values: [], count: 0 };\n    }\n    hourlyData[hourStart].values.push(item.value);\n    hourlyData[hourStart].count++;\n  });\n  rawData = Object.keys(hourlyData).map(h => {\n    const avgValue = hourlyData[h].values.reduce((a, b) => a + b, 0) / hourlyData[h].count;\n    return { start: new Date(parseInt(h)).toISOString(), value: avgValue };\n  });\n}\nreturn rawData.map(item => {\n  const price = (item.value * (1 + vat)) + tax + add;\n  return [new Date(item.start).getTime(), price];\n});\n"
                           }
                         ]
@@ -579,7 +605,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                             }
                           },
                           "stroke": {
-                            "show": true,
+                            "show": false,
                             "width": 1,
                             "colors": [
                               "rgba(255, 255, 255, 0.25)"
@@ -590,7 +616,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           },
                           "grid": {
                             "show": true,
-                            "borderColor": "#e5e7eb",
+                            "borderColor": "#6b7280",
                             "strokeDashArray": 4,
                             "position": "back",
                             "xaxis": {
@@ -600,7 +626,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                             },
                             "yaxis": {
                               "lines": {
-                                "show": false
+                                "show": true
                               }
                             },
                             "padding": {
@@ -651,6 +677,9 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           "show": false
                         },
                         "update_interval": "12s",
+                        "experimental": {
+                          "color_threshold": true
+                        },
                         "apex_config": {
                           "chart": {
                             "height": 240,
@@ -692,7 +721,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           },
                           "grid": {
                             "show": true,
-                            "borderColor": "#f0f0f0",
+                            "borderColor": "#6b7280",
                             "strokeDashArray": 3,
                             "position": "back",
                             "xaxis": {
@@ -749,8 +778,31 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                             "entity": "sensor.nordpool_kwh_nl_eur_3_10_0",
                             "name": "Price",
                             "type": "area",
+                            "color_threshold": [
+                              {
+                                "value": 0,
+                                "color": "green"
+                              },
+                              {
+                                "value": 0.15,
+                                "color": "lightgreen"
+                              },
+                              {
+                                "value": 0.2,
+                                "color": "yellow"
+                              },
+                              {
+                                "value": 0.35,
+                                "color": "red"
+                              },
+                              {
+                                "value": 0.5,
+                                "color": "purple"
+                              }
+                            ],
+                            "curve": "stepline",
                             "stroke_width": 2,
-                            "color": "#3b82f6",
+                            "float_precision": 3,
                             "data_generator": "const sensorName = hass.states['text.cew_price_sensor_entity']?.state || 'sensor.nordpool_kwh_nl_eur_3_10_0'; const nordpool = hass.states[sensorName];\nif (!nordpool?.attributes?.raw_tomorrow || !nordpool.attributes.tomorrow_valid) return [];\nconst pricingMode = hass.states['select.cew_pricing_window_duration']?.state || '15_minutes';\nconst add = parseFloat(hass.states['number.cew_additional_cost'].state) || 0.02398;\nconst tax = parseFloat(hass.states['number.cew_tax'].state) || 0.12286;\nconst vat = hass.states['number.cew_vat']?.state !== undefined ? parseFloat(hass.states['number.cew_vat'].state) : 0.21;\nlet rawData = nordpool.attributes.raw_tomorrow;\nif (pricingMode === '1_hour') {\n  const hourlyData = {};\n  rawData.forEach(item => {\n    const time = new Date(item.start).getTime();\n    const hourStart = Math.floor(time / 3600000) * 3600000;\n    if (!hourlyData[hourStart]) {\n      hourlyData[hourStart] = { values: [], count: 0 };\n    }\n    hourlyData[hourStart].values.push(item.value);\n    hourlyData[hourStart].count++;\n  });\n  rawData = Object.keys(hourlyData).map(h => {\n    const avgValue = hourlyData[h].values.reduce((a, b) => a + b, 0) / hourlyData[h].count;\n    return { start: new Date(parseInt(h)).toISOString(), value: avgValue };\n  });\n}\nreturn rawData.map(item => {\n  const price = (item.value * (1 + vat)) + tax + add;\n  return [new Date(item.start).getTime(), price];\n});\n"
                           }
                         ]
