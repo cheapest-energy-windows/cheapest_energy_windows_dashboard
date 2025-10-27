@@ -20,3 +20,10 @@ yarn-error.log*
 *.tmp
 *.bak
 .cache/
+
+# Development files
+convert-yaml-to-js.js
+convert-js-to-yaml.js
+test-*.js
+package.json
+package-lock.json
