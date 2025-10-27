@@ -1,6 +1,7 @@
 # Cheapest Energy Windows Dashboard
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
+[![Download](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=cheapest-energy-windows&repository=cheapest_energy_windows_dashboard&category=dashboard)
 
 <a href="https://www.buymeacoffee.com/cheapest_energy_windows" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
 
@@ -28,8 +29,14 @@ This dashboard **requires** the main Cheapest Energy Windows integration to be i
 
 ## 🚀 Installation
 
-### Via HACS
+### Via HACS (Recommended)
 
+#### Option 1: Direct Install (Once Available in HACS)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=cheapest-energy-windows&repository=cheapest_energy_windows_dashboard&category=dashboard)
+
+Click the button above to open this dashboard directly in HACS, then click "Download".
+
+#### Option 2: Manual Add via Custom Repository
 1. Open HACS in Home Assistant
 2. Click on "Frontend"
 3. Click the 3 dots menu (top right) → "Custom repositories"
