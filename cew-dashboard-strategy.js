@@ -24,7 +24,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           {
                             "type": "custom:mushroom-template-card",
                             "primary": "Average Price",
-                            "secondary": "{% set sensorName = states('text.cew_price_sensor_entity') or 'sensor.nordpool_kwh_nl_eur_3_10_0' %} {% set nordpool = states[sensorName] %} {% set add = states('number.cew_additional_cost') | float(0.02398) %} {% set tax = states('number.cew_tax') | float(0.12286) %} {% set vat = states('number.cew_vat') | float if states('number.cew_vat') not in ['unknown', 'unavailable', 'none'] else 0.21 %} {% set pricing_mode = states('select.cew_pricing_window_duration') | default('15_minutes') %} {% set ns = namespace(prices=[]) %} {% if nordpool.attributes.raw_today %} {% if pricing_mode == '1_hour' %} {% for hour in range(24) %} {% set hour_sum = namespace(value=0, count=0) %} {% set hour_str = '%02d' | format(hour) %} {% for item in nordpool.attributes.raw_today %} {% set timestamp = item.start | replace('\"', '') %} {% if timestamp[11:13] == hour_str %} {% set hour_sum.value = hour_sum.value + item.value %} {% set hour_sum.count = hour_sum.count + 1 %} {% endif %} {% endfor %} {% if hour_sum.count > 0 %} {% set avg_value = hour_sum.value / hour_sum.count %} {% set actual_price = avg_value * (1 + vat) + tax + add %} {% set ns.prices = ns.prices + [actual_price] %} {% endif %} {% endfor %} {% else %}\n  {% for item in nordpool.attributes.raw_today %}\n    {% set actual_price = (item.value | float(0)) * (1 + vat) + tax + add %}\n    {% set ns.prices = ns.prices + [actual_price] %}\n  {% endfor %} {% endif %}\n{% endif %} {% set avg_price = (ns.prices | sum / ns.prices | length) if ns.prices | length > 0 else 0 %} €{{ avg_price | round(3) }}/kWh",
+                            "secondary": "{% set priceSensor = states['sensor.cew_price_sensor_proxy'] %} {% set add = states('number.cew_additional_cost') | float(0.02398) %} {% set tax = states('number.cew_tax') | float(0.12286) %} {% set vat = states('number.cew_vat') | float if states('number.cew_vat') not in ['unknown', 'unavailable', 'none'] else 0.21 %} {% set pricing_mode = states('select.cew_pricing_window_duration') | default('15_minutes') %} {% set ns = namespace(prices=[]) %} {% if priceSensor.attributes.raw_today %} {% if pricing_mode == '1_hour' %} {% for hour in range(24) %} {% set hour_sum = namespace(value=0, count=0) %} {% set hour_str = '%02d' | format(hour) %} {% for item in priceSensor.attributes.raw_today %} {% set timestamp = item.start | replace('\"', '') %} {% if timestamp[11:13] == hour_str %} {% set hour_sum.value = hour_sum.value + item.value %} {% set hour_sum.count = hour_sum.count + 1 %} {% endif %} {% endfor %} {% if hour_sum.count > 0 %} {% set avg_value = hour_sum.value / hour_sum.count %} {% set actual_price = avg_value * (1 + vat) + tax + add %} {% set ns.prices = ns.prices + [actual_price] %} {% endif %} {% endfor %} {% else %}\n  {% for item in priceSensor.attributes.raw_today %}\n    {% set actual_price = (item.value | float(0)) * (1 + vat) + tax + add %}\n    {% set ns.prices = ns.prices + [actual_price] %}\n  {% endfor %} {% endif %}\n{% endif %} {% set avg_price = (ns.prices | sum / ns.prices | length) if ns.prices | length > 0 else 0 %} €{{ avg_price | round(3) }}/kWh",
                             "icon": "mdi:chart-line-variant",
                             "tap_action": {
                               "action": "none"
@@ -74,7 +74,6 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         "header": {
                           "show": false
                         },
-                        "update_interval": "5s",
                         "yaxis": [
                           {
                             "id": "status",
@@ -147,16 +146,23 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           },
                           "tooltip": {
                             "enabled": true,
-                            "custom": "EVAL:function({seriesIndex, dataPointIndex, w}) {\n  const data = w.config.series[0].data[dataPointIndex];\n  const baseStyle = 'padding: 10px 12px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif;';\n  if (data.override && data.overrideMode === 'idle') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">💤 Time Override: Idle</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced idle/smart meter mode</div></div>';\n  if (data.override && data.overrideMode === 'charge') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #a3e635 0%, #84cc16 100%); color: #1a2e05;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">⚡ Time Override: Charging</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced charging period</div></div>';\n  if (data.override && data.overrideMode === 'discharge') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">🔌 Time Override: Discharging</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced discharging period</div></div>';\n  if (data.override && data.overrideMode === 'discharge_aggressive') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">⚡ Time Override: Peak Discharge</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced aggressive discharge</div></div>';\n  if (data.cheap) return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">🔋 Charging Window</div><div style=\"font-size: 12px; opacity: 0.9;\">Cheap energy period</div></div>';\n  if (data.expensiveAggressive) return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">⚡ Peak Discharge</div><div style=\"font-size: 12px; opacity: 0.9;\">Maximum price opportunity</div></div>';\n  if (data.expensive) return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">🔌 Discharge Window</div><div style=\"font-size: 12px; opacity: 0.9;\">Elevated price period</div></div>';\n  return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">💡 Normal Period</div><div style=\"font-size: 12px; opacity: 0.9;\">Smart meter mode</div></div>';\n}\n"
+                            "custom": "EVAL:function({seriesIndex, dataPointIndex, w}) {\n  const data = w.config.series[0].data[dataPointIndex];\n  const baseStyle = 'padding: 10px 12px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif;';\n  if (data.override && data.overrideMode === 'off') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #3f3f46 0%, #27272a 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">🔌 Time Override: Battery Off</div><div style=\"font-size: 12px; opacity: 0.9;\">Operations suspended</div></div>';\n  if (data.override && data.overrideMode === 'idle') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">💤 Time Override: Idle</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced idle/smart meter mode</div></div>';\n  if (data.override && data.overrideMode === 'charge') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #a3e635 0%, #84cc16 100%); color: #1a2e05;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">⚡ Time Override: Charging</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced charging period</div></div>';\n  if (data.override && data.overrideMode === 'discharge') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">🔌 Time Override: Discharging</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced discharging period</div></div>';\n  if (data.override && data.overrideMode === 'discharge_aggressive') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">⚡ Time Override: Peak Discharge</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced aggressive discharge</div></div>';\n  if (data.charge) return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">🔋 Charging Window</div><div style=\"font-size: 12px; opacity: 0.9;\">Cheap energy period</div></div>';\n  if (data.aggressiveDischarge) return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">⚡ Peak Discharge</div><div style=\"font-size: 12px; opacity: 0.9;\">Maximum price opportunity</div></div>';\n  if (data.discharge) return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">🔌 Discharge Window</div><div style=\"font-size: 12px; opacity: 0.9;\">Elevated price period</div></div>';\n  return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">💡 Normal Period</div><div style=\"font-size: 12px; opacity: 0.9;\">Smart meter mode</div></div>';\n}\n"
                           }
                         },
                         "series": [
                           {
-                            "entity": "sensor.nordpool_kwh_nl_eur_3_10_0",
+                            "entity": "sensor.cew_price_sensor_proxy",
                             "name": "Energy Periods",
                             "type": "column",
-                            "data_generator": "const sensorName = hass.states['text.cew_price_sensor_entity']?.state || 'sensor.nordpool_kwh_nl_eur_3_10_0'; const nordpool = hass.states[sensorName]; const cheapest = hass.states['sensor.cew_today']; if (!nordpool?.attributes?.raw_today || !cheapest?.attributes) return [];\nconst pricingMode = hass.states['select.cew_pricing_window_duration']?.state || '15_minutes';\nconst cheapestTimes = cheapest.attributes.cheapest_times || []; const expensiveTimes = cheapest.attributes.expensive_times || []; const expensiveAggressiveTimes = cheapest.attributes.expensive_times_aggressive || []; const spreadMet = cheapest.attributes.spread_met; const dischargeSpreadMet = cheapest.attributes.discharge_spread_met;\nconst cheapestSet = new Set(cheapestTimes.map(t => new Date(t).getTime())); const expensiveSet = new Set(expensiveTimes.map(t => new Date(t).getTime())); const expensiveAggressiveSet = new Set(expensiveAggressiveTimes.map(t => new Date(t).getTime()));\nconst override1Enabled = hass.states['switch.cew_time_override_enabled']?.state === 'on'; const override1Start = hass.states['time.cew_time_override_start']?.state; const override1End = hass.states['time.cew_time_override_end']?.state; const override1Mode = hass.states['select.cew_time_override_mode']?.state;\nfunction isInTimeRange(timeMs, startTime, endTime) {\n  const date = new Date(timeMs);\n  const timeStr = date.toTimeString().substring(0, 8);\n  return startTime <= timeStr && timeStr < endTime;\n}\nlet rawData = nordpool.attributes.raw_today;\nconst cheapestHours = (pricingMode === '1_hour')\n  ? new Set(Array.from(cheapestSet).map(t => Math.floor(t / 3600000) * 3600000))\n  : null;\nconst expensiveHours = (pricingMode === '1_hour')\n  ? new Set(Array.from(expensiveSet).map(t => Math.floor(t / 3600000) * 3600000))\n  : null;\nconst expensiveAggressiveHours = (pricingMode === '1_hour')\n  ? new Set(Array.from(expensiveAggressiveSet).map(t => Math.floor(t / 3600000) * 3600000))\n  : null;\n\nreturn rawData.map(item => {\n  const time = new Date(item.start).getTime();\n\n  let isCheap, isExpensive, isExpensiveAggressive;\n  if (pricingMode === '1_hour') {\n    const hourStart = Math.floor(time / 3600000) * 3600000;\n    isCheap = (cheapestTimes.length > 0) && cheapestHours.has(hourStart);\n    isExpensiveAggressive = expensiveAggressiveHours.has(hourStart);\n    isExpensive = (expensiveTimes.length > 0) && expensiveHours.has(hourStart);\n  } else {\n    isCheap = (cheapestTimes.length > 0) && cheapestSet.has(time);\n    isExpensiveAggressive = expensiveAggressiveSet.has(time);\n    isExpensive = (expensiveTimes.length > 0) && expensiveSet.has(time);\n  }\n\n  const isOverride = override1Enabled && override1Start && override1End && isInTimeRange(time, override1Start, override1End);\n  const overrideMode = isOverride ? override1Mode : null;\n\n  let color = 'transparent';\n  if (isOverride && overrideMode === 'idle') color = 'transparent';\n  else if (isOverride && overrideMode === 'charge') color = '#a3e635';\n  else if (isOverride && overrideMode === 'discharge') color = '#fb923c';\n  else if (isOverride && overrideMode === 'discharge_aggressive') color = '#dc2626';\n  else if (isCheap) color = '#22c55e';\n  else if (isExpensiveAggressive) color = '#dc2626';\n  else if (isExpensive) color = '#f97316';\n\n  return {\n    x: time,\n    y: 1,\n    fillColor: color,\n    cheap: isCheap,\n    expensive: isExpensive,\n    expensiveAggressive: isExpensiveAggressive,\n    override: isOverride,\n    overrideMode: overrideMode\n  };\n});\n",
+                            "data_generator": "const lastCalc = hass.states['sensor.cew_last_calculation']?.state; const priceSensor = hass.states['sensor.cew_price_sensor_proxy']; const cheapest = hass.states['sensor.cew_today']; if (!priceSensor?.attributes?.raw_today || !cheapest?.attributes) return [];\nconst pricingMode = hass.states['select.cew_pricing_window_duration']?.state || '15_minutes';\nconst override1Enabled = hass.states['switch.cew_time_override_enabled']?.state === 'on'; const override1Start = hass.states['time.cew_time_override_start']?.state; const override1End = hass.states['time.cew_time_override_end']?.state; const override1Mode = hass.states['select.cew_time_override_mode']?.state;\nfunction isInTimeRange(timeMs, startTime, endTime) {\n  const date = new Date(timeMs);\n  const timeStr = date.toTimeString().substring(0, 8);\n  return startTime <= timeStr && timeStr < endTime;\n}\nconst actualChargeTimes = cheapest.attributes.actual_charge_times || []; const actualDischargeTimes = cheapest.attributes.actual_discharge_times || []; const aggressiveDischargeTimes = cheapest.attributes.expensive_times_aggressive || []; const spreadMet = cheapest.attributes.spread_met; const dischargeSpreadMet = cheapest.attributes.discharge_spread_met;\nconst chargeSet = new Set(actualChargeTimes.map(t => new Date(t).getTime())); const dischargeSet = new Set(actualDischargeTimes.map(t => new Date(t).getTime())); const aggressiveSet = new Set(aggressiveDischargeTimes.map(t => new Date(t).getTime()));\nlet rawData = priceSensor.attributes.raw_today;\nconst chargeHours = (pricingMode === '1_hour')\n  ? new Set(Array.from(chargeSet).map(t => Math.floor(t / 3600000) * 3600000))\n  : null;\nconst dischargeHours = (pricingMode === '1_hour')\n  ? new Set(Array.from(dischargeSet).map(t => Math.floor(t / 3600000) * 3600000))\n  : null;\nconst aggressiveHours = (pricingMode === '1_hour')\n  ? new Set(Array.from(aggressiveSet).map(t => Math.floor(t / 3600000) * 3600000))\n  : null;\n\nreturn rawData.map(item => {\n  const time = new Date(item.start).getTime();\n\n  let isCharge, isDischarge, isAggressiveDischarge;\n  if (pricingMode === '1_hour') {\n    const hourStart = Math.floor(time / 3600000) * 3600000;\n    isCharge = (actualChargeTimes.length > 0) && chargeHours.has(hourStart);\n    isDischarge = (actualDischargeTimes.length > 0) && dischargeHours.has(hourStart);\n    isAggressiveDischarge = (aggressiveDischargeTimes.length > 0) && aggressiveHours.has(hourStart);\n  } else {\n    isCharge = (actualChargeTimes.length > 0) && chargeSet.has(time);\n    isDischarge = (actualDischargeTimes.length > 0) && dischargeSet.has(time);\n    isAggressiveDischarge = (aggressiveDischargeTimes.length > 0) && aggressiveSet.has(time);\n  }\n\n  const isOverride = override1Enabled && override1Start && override1End && isInTimeRange(time, override1Start, override1End);\n  const overrideMode = isOverride ? override1Mode : null;\n\n  let color = 'transparent';\n  if (isOverride && overrideMode === 'off') color = '#3f3f46';\n  else if (isOverride && overrideMode === 'idle') color = 'transparent';\n  else if (isOverride && overrideMode === 'charge') color = '#a3e635';\n  else if (isOverride && overrideMode === 'discharge') color = '#fb923c';\n  else if (isOverride && overrideMode === 'discharge_aggressive') color = '#dc2626';\n  else if (isCharge) color = '#22c55e';\n  else if (isAggressiveDischarge) color = '#dc2626';\n  else if (isDischarge) color = '#f97316';\n\n  return {\n    x: time,\n    y: 1,\n    fillColor: color,\n    charge: isCharge,\n    discharge: isDischarge,\n    aggressiveDischarge: isAggressiveDischarge,\n    override: isOverride,\n    overrideMode: overrideMode\n  };\n});\n",
                             "stroke_width": 0
+                          },
+                          {
+                            "entity": "sensor.cew_last_calculation",
+                            "name": "Calculation Trigger",
+                            "show": {
+                              "in_chart": false
+                            }
                           }
                         ]
                       },
@@ -174,7 +180,6 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         "header": {
                           "show": false
                         },
-                        "update_interval": "12s",
                         "experimental": {
                           "color_threshold": true
                         },
@@ -270,7 +275,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         },
                         "series": [
                           {
-                            "entity": "sensor.nordpool_kwh_nl_eur_3_10_0",
+                            "entity": "sensor.cew_price_sensor_proxy",
                             "name": "Price",
                             "type": "area",
                             "color_threshold": [
@@ -298,7 +303,14 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                             "curve": "stepline",
                             "stroke_width": 2,
                             "float_precision": 3,
-                            "data_generator": "const sensorName = hass.states['text.cew_price_sensor_entity']?.state || 'sensor.nordpool_kwh_nl_eur_3_10_0'; const nordpool = hass.states[sensorName];\nif (!nordpool?.attributes?.raw_today) return [];\nconst pricingMode = hass.states['select.cew_pricing_window_duration']?.state || '15_minutes';\nconst add = parseFloat(hass.states['number.cew_additional_cost'].state) || 0.02398;\nconst tax = parseFloat(hass.states['number.cew_tax'].state) || 0.12286;\nconst vat = hass.states['number.cew_vat']?.state !== undefined ? parseFloat(hass.states['number.cew_vat'].state) : 0.21;\nlet rawData = nordpool.attributes.raw_today;\nif (pricingMode === '1_hour') {\n  const hourlyData = {};\n  rawData.forEach(item => {\n    const time = new Date(item.start).getTime();\n    const hourStart = Math.floor(time / 3600000) * 3600000;\n    if (!hourlyData[hourStart]) {\n      hourlyData[hourStart] = { values: [], count: 0 };\n    }\n    hourlyData[hourStart].values.push(item.value);\n    hourlyData[hourStart].count++;\n  });\n  rawData = Object.keys(hourlyData).map(h => {\n    const avgValue = hourlyData[h].values.reduce((a, b) => a + b, 0) / hourlyData[h].count;\n    return { start: new Date(parseInt(h)).toISOString(), value: avgValue };\n  });\n}\nreturn rawData.map(item => {\n  const price = (item.value * (1 + vat)) + tax + add;\n  return [new Date(item.start).getTime(), price];\n});\n"
+                            "data_generator": "const priceSensor = hass.states['sensor.cew_price_sensor_proxy'];\nif (!priceSensor?.attributes?.raw_today) return [];\nconst pricingMode = hass.states['select.cew_pricing_window_duration']?.state || '15_minutes';\nconst add = parseFloat(hass.states['number.cew_additional_cost'].state) || 0.02398;\nconst tax = parseFloat(hass.states['number.cew_tax'].state) || 0.12286;\nconst vat = hass.states['number.cew_vat']?.state !== undefined ? parseFloat(hass.states['number.cew_vat'].state) : 0.21;\nlet rawData = priceSensor.attributes.raw_today;\nif (pricingMode === '1_hour') {\n  const hourlyData = {};\n  rawData.forEach(item => {\n    const time = new Date(item.start).getTime();\n    const hourStart = Math.floor(time / 3600000) * 3600000;\n    if (!hourlyData[hourStart]) {\n      hourlyData[hourStart] = { values: [], count: 0 };\n    }\n    hourlyData[hourStart].values.push(item.value);\n    hourlyData[hourStart].count++;\n  });\n  rawData = Object.keys(hourlyData).map(h => {\n    const avgValue = hourlyData[h].values.reduce((a, b) => a + b, 0) / hourlyData[h].count;\n    return { start: new Date(parseInt(h)).toISOString(), value: avgValue };\n  });\n}\nreturn rawData.map(item => {\n  const price = (item.value * (1 + vat)) + tax + add;\n  return [new Date(item.start).getTime(), price];\n});\n"
+                          },
+                          {
+                            "entity": "select.cew_pricing_window_duration",
+                            "name": "Mode Trigger",
+                            "show": {
+                              "in_chart": false
+                            }
                           }
                         ]
                       },
@@ -380,7 +392,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                   },
                                   {
                                     "entity": "number.cew_expensive_windows",
-                                    "name": "Expensive Windows (max)"
+                                    "name": "Discharge Windows (max)"
                                   },
                                   {
                                     "entity": "number.cew_cheap_percentile",
@@ -494,7 +506,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           "sensor.cew_today"
                         ],
                         "card_mod": {
-                          "style": "ha-card { min-height: 200px; }"
+                          "style": "ha-card {\n  min-height: 200px;\n}\n"
                         },
                         "content": "**⚡ Charge Windows** ({{ state_attr('sensor.cew_today', 'actual_charge_times') | default([]) | length }} periods){% set times = state_attr('sensor.cew_today', 'actual_charge_times') or [] %}{% set prices = state_attr('sensor.cew_today', 'actual_charge_prices') or [] %}{% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %}{% set charge_power_kw = states('number.cew_charge_power') | float(0) / 1000 %}{% set total_cost = (prices | sum) * window_duration * charge_power_kw if prices else 0 %}{% if prices and prices | length > 0 %} • Cost: €{{ total_cost | round(2) }}{% endif %}\n{% if times and times | length > 0 %} {% set window_seconds = 3600 if states('select.cew_pricing_window_duration') == '1_hour' else 900 %} {% set ns = namespace(items=[], groups=[]) %} {% for i in range(times | length) %} {% set ns.items = ns.items + [{'time': as_timestamp(times[i]), 'price': prices[i]}] %} {% endfor %} {% set sorted_items = ns.items | sort(attribute='time') %} {% set ns = namespace(current_group={'start': sorted_items[0].time, 'end': sorted_items[0].time + window_seconds, 'prices': [sorted_items[0].price]}, groups=[]) %} {% for item in sorted_items[1:] %} {% if item.time == ns.current_group.end %} {% set ns.current_group = {'start': ns.current_group.start, 'end': item.time + window_seconds, 'prices': ns.current_group.prices + [item.price]} %} {% else %} {% set ns.groups = ns.groups + [ns.current_group] %} {% set ns.current_group = {'start': item.time, 'end': item.time + window_seconds, 'prices': [item.price]} %} {% endif %} {% endfor %} {% set ns.groups = ns.groups + [ns.current_group] %} {% for group in ns.groups %} **{{ group.start | timestamp_custom('%H:%M') }}-{{ group.end | timestamp_custom('%H:%M') }}** • Avg: €{{ (group.prices | sum / group.prices | length) | round(3) }}{% if not loop.last %}\n{% endif %} {% endfor %} {% else %} *No charge windows scheduled* {% endif %}\n&nbsp;\n**🔋 Discharge Windows** ({{ state_attr('sensor.cew_today', 'actual_discharge_times') | default([]) | length }} periods){% set times = state_attr('sensor.cew_today', 'actual_discharge_times') or [] %}{% set prices = state_attr('sensor.cew_today', 'actual_discharge_prices') or [] %}{% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %}{% set discharge_power_kw = states('number.cew_discharge_power') | float(0) / 1000 %}{% set total_revenue = (prices | sum) * window_duration * discharge_power_kw if prices else 0 %}{% if prices and prices | length > 0 %} • Revenue: €{{ total_revenue | round(2) }}{% endif %}\n{% if times and times | length > 0 %} {% set window_seconds = 3600 if states('select.cew_pricing_window_duration') == '1_hour' else 900 %} {% set ns = namespace(items=[], groups=[]) %} {% for i in range(times | length) %} {% set ns.items = ns.items + [{'time': as_timestamp(times[i]), 'price': prices[i]}] %} {% endfor %} {% set sorted_items = ns.items | sort(attribute='time') %} {% set ns = namespace(current_group={'start': sorted_items[0].time, 'end': sorted_items[0].time + window_seconds, 'prices': [sorted_items[0].price]}, groups=[]) %} {% for item in sorted_items[1:] %} {% if item.time == ns.current_group.end %} {% set ns.current_group = {'start': ns.current_group.start, 'end': item.time + window_seconds, 'prices': ns.current_group.prices + [item.price]} %} {% else %} {% set ns.groups = ns.groups + [ns.current_group] %} {% set ns.current_group = {'start': item.time, 'end': item.time + window_seconds, 'prices': [item.price]} %} {% endif %} {% endfor %} {% set ns.groups = ns.groups + [ns.current_group] %} {% for group in ns.groups %} **{{ group.start | timestamp_custom('%H:%M') }}-{{ group.end | timestamp_custom('%H:%M') }}** • Avg: €{{ (group.prices | sum / group.prices | length) | round(3) }}{% if not loop.last %}\n{% endif %} {% endfor %} {% else %} *No discharge windows scheduled* {% endif %}"
                       }
@@ -519,7 +531,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           {
                             "type": "custom:mushroom-template-card",
                             "primary": "Average Price",
-                            "secondary": "{% set sensorName = states('text.cew_price_sensor_entity') or 'sensor.nordpool_kwh_nl_eur_3_10_0' %} {% set nordpool = states[sensorName] %} {% set add = states('number.cew_additional_cost') | float(0.02398) %} {% set tax = states('number.cew_tax') | float(0.12286) %} {% set vat = states('number.cew_vat') | float if states('number.cew_vat') not in ['unknown', 'unavailable', 'none'] else 0.21 %} {% set pricing_mode = states('select.cew_pricing_window_duration') | default('15_minutes') %} {% set ns = namespace(prices=[]) %} {% if nordpool.attributes.raw_tomorrow %} {% if pricing_mode == '1_hour' %} {% for hour in range(24) %} {% set hour_sum = namespace(value=0, count=0) %} {% set hour_str = '%02d' | format(hour) %} {% for item in nordpool.attributes.raw_tomorrow %} {% set timestamp = item.start | replace('\"', '') %} {% if timestamp[11:13] == hour_str %} {% set hour_sum.value = hour_sum.value + item.value %} {% set hour_sum.count = hour_sum.count + 1 %} {% endif %} {% endfor %} {% if hour_sum.count > 0 %} {% set avg_value = hour_sum.value / hour_sum.count %} {% set actual_price = avg_value * (1 + vat) + tax + add %} {% set ns.prices = ns.prices + [actual_price] %} {% endif %} {% endfor %} {% else %}\n  {% for item in nordpool.attributes.raw_tomorrow %}\n    {% set actual_price = (item.value | float(0)) * (1 + vat) + tax + add %}\n    {% set ns.prices = ns.prices + [actual_price] %}\n  {% endfor %} {% endif %}\n{% endif %} {% set avg_price = (ns.prices | sum / ns.prices | length) if ns.prices | length > 0 else 0 %} €{{ avg_price | round(3) }}/kWh",
+                            "secondary": "{% set priceSensor = states['sensor.cew_price_sensor_proxy'] %} {% set add = states('number.cew_additional_cost') | float(0.02398) %} {% set tax = states('number.cew_tax') | float(0.12286) %} {% set vat = states('number.cew_vat') | float if states('number.cew_vat') not in ['unknown', 'unavailable', 'none'] else 0.21 %} {% set pricing_mode = states('select.cew_pricing_window_duration') | default('15_minutes') %} {% set ns = namespace(prices=[]) %} {% if priceSensor.attributes.raw_tomorrow %} {% if pricing_mode == '1_hour' %} {% for hour in range(24) %} {% set hour_sum = namespace(value=0, count=0) %} {% set hour_str = '%02d' | format(hour) %} {% for item in priceSensor.attributes.raw_tomorrow %} {% set timestamp = item.start | replace('\"', '') %} {% if timestamp[11:13] == hour_str %} {% set hour_sum.value = hour_sum.value + item.value %} {% set hour_sum.count = hour_sum.count + 1 %} {% endif %} {% endfor %} {% if hour_sum.count > 0 %} {% set avg_value = hour_sum.value / hour_sum.count %} {% set actual_price = avg_value * (1 + vat) + tax + add %} {% set ns.prices = ns.prices + [actual_price] %} {% endif %} {% endfor %} {% else %}\n  {% for item in priceSensor.attributes.raw_tomorrow %}\n    {% set actual_price = (item.value | float(0)) * (1 + vat) + tax + add %}\n    {% set ns.prices = ns.prices + [actual_price] %}\n  {% endfor %} {% endif %}\n{% endif %} {% set avg_price = (ns.prices | sum / ns.prices | length) if ns.prices | length > 0 else 0 %} €{{ avg_price | round(3) }}/kWh",
                             "icon": "mdi:chart-line-variant",
                             "tap_action": {
                               "action": "none"
@@ -565,7 +577,6 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         "header": {
                           "show": false
                         },
-                        "update_interval": "5s",
                         "yaxis": [
                           {
                             "id": "status",
@@ -638,7 +649,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           },
                           "tooltip": {
                             "enabled": true,
-                            "custom": "EVAL:function({seriesIndex, dataPointIndex, w}) {\n  const data = w.config.series[0].data[dataPointIndex];\n  const baseStyle = 'padding: 10px 12px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif;';\n  if (data.override && data.overrideMode === 'idle') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">💤 Time Override: Idle</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced idle/smart meter mode</div></div>';\n  if (data.override && data.overrideMode === 'charge') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #a3e635 0%, #84cc16 100%); color: #1a2e05;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">⚡ Time Override: Charging</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced charging period</div></div>';\n  if (data.override && data.overrideMode === 'discharge') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">🔌 Time Override: Discharging</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced discharging period</div></div>';\n  if (data.override && data.overrideMode === 'discharge_aggressive') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">⚡ Time Override: Peak Discharge</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced aggressive discharge</div></div>';\n  if (data.cheap) return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">🔋 Charging Window</div><div style=\"font-size: 12px; opacity: 0.9;\">Cheap energy period</div></div>';\n  if (data.expensiveAggressive) return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">⚡ Peak Discharge</div><div style=\"font-size: 12px; opacity: 0.9;\">Maximum price opportunity</div></div>';\n  if (data.expensive) return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">🔌 Discharge Window</div><div style=\"font-size: 12px; opacity: 0.9;\">Elevated price period</div></div>';\n  return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">💡 Normal Period</div><div style=\"font-size: 12px; opacity: 0.9;\">Smart meter mode</div></div>';\n}\n"
+                            "custom": "EVAL:function({seriesIndex, dataPointIndex, w}) {\n  const data = w.config.series[0].data[dataPointIndex];\n  const baseStyle = 'padding: 10px 12px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-family: -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, sans-serif;';\n  if (data.override && data.overrideMode === 'off') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #3f3f46 0%, #27272a 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">🔌 Time Override: Battery Off</div><div style=\"font-size: 12px; opacity: 0.9;\">Operations suspended</div></div>';\n  if (data.override && data.overrideMode === 'idle') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">💤 Time Override: Idle</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced idle/smart meter mode</div></div>';\n  if (data.override && data.overrideMode === 'charge') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #a3e635 0%, #84cc16 100%); color: #1a2e05;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">⚡ Time Override: Charging</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced charging period</div></div>';\n  if (data.override && data.overrideMode === 'discharge') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">🔌 Time Override: Discharging</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced discharging period</div></div>';\n  if (data.override && data.overrideMode === 'discharge_aggressive') return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">⚡ Time Override: Peak Discharge</div><div style=\"font-size: 12px; opacity: 0.9;\">Forced aggressive discharge</div></div>';\n  if (data.charge) return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">🔋 Charging Window</div><div style=\"font-size: 12px; opacity: 0.9;\">Cheap energy period</div></div>';\n  if (data.aggressiveDischarge) return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">⚡ Peak Discharge</div><div style=\"font-size: 12px; opacity: 0.9;\">Maximum price opportunity</div></div>';\n  if (data.discharge) return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">🔌 Discharge Window</div><div style=\"font-size: 12px; opacity: 0.9;\">Elevated price period</div></div>';\n  return '<div style=\"' + baseStyle + ' background: linear-gradient(135deg, #64748b 0%, #475569 100%); color: #fff;\"><div style=\"font-weight: 600; font-size: 14px; margin-bottom: 4px;\">💡 Normal Period</div><div style=\"font-size: 12px; opacity: 0.9;\">Smart meter mode</div></div>';\n}\n"
                           },
                           "noData": {
                             "text": [
@@ -658,11 +669,18 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         },
                         "series": [
                           {
-                            "entity": "sensor.nordpool_kwh_nl_eur_3_10_0",
+                            "entity": "sensor.cew_price_sensor_proxy",
                             "name": "Energy Periods",
                             "type": "column",
-                            "data_generator": "const sensorName = hass.states['text.cew_price_sensor_entity']?.state || 'sensor.nordpool_kwh_nl_eur_3_10_0'; const nordpool = hass.states[sensorName]; const cheapest = hass.states['sensor.cew_tomorrow']; if (!nordpool?.attributes?.raw_tomorrow || !nordpool.attributes.tomorrow_valid || !cheapest?.attributes) return [];\nconst pricingMode = hass.states['select.cew_pricing_window_duration']?.state || '15_minutes';\nconst cheapestTimes = cheapest.attributes.cheapest_times || []; const expensiveTimes = cheapest.attributes.expensive_times || []; const expensiveAggressiveTimes = cheapest.attributes.expensive_times_aggressive || []; const spreadMet = cheapest.attributes.spread_met; const dischargeSpreadMet = cheapest.attributes.discharge_spread_met ?? (expensiveTimes.length > 0); const aggressiveDischargeSpreadMet = cheapest.attributes.aggressive_discharge_spread_met ?? (expensiveAggressiveTimes.length > 0);\nconst cheapestSet = new Set(cheapestTimes.map(t => new Date(t).getTime())); const expensiveSet = new Set(expensiveTimes.map(t => new Date(t).getTime())); const expensiveAggressiveSet = new Set(expensiveAggressiveTimes.map(t => new Date(t).getTime()));\nconst override1Enabled = hass.states['switch.cew_time_override_enabled_tomorrow']?.state === 'on'; const override1Start = hass.states['time.cew_time_override_start_tomorrow']?.state; const override1End = hass.states['time.cew_time_override_end_tomorrow']?.state; const override1Mode = hass.states['select.cew_time_override_mode_tomorrow']?.state;\nfunction isInTimeRange(timeMs, startTime, endTime) {\n  const date = new Date(timeMs);\n  const timeStr = date.toTimeString().substring(0, 8);\n  return startTime <= timeStr && timeStr < endTime;\n}\nlet rawData = nordpool.attributes.raw_tomorrow;\nconst cheapestHours = (pricingMode === '1_hour')\n  ? new Set(Array.from(cheapestSet).map(t => Math.floor(t / 3600000) * 3600000))\n  : null;\nconst expensiveHours = (pricingMode === '1_hour')\n  ? new Set(Array.from(expensiveSet).map(t => Math.floor(t / 3600000) * 3600000))\n  : null;\nconst expensiveAggressiveHours = (pricingMode === '1_hour')\n  ? new Set(Array.from(expensiveAggressiveSet).map(t => Math.floor(t / 3600000) * 3600000))\n  : null;\n\nreturn rawData.map(item => {\n  const time = new Date(item.start).getTime();\n\n  let isCheap, isExpensive, isExpensiveAggressive;\n  if (pricingMode === '1_hour') {\n    const hourStart = Math.floor(time / 3600000) * 3600000;\n    isCheap = (cheapestTimes.length > 0) && cheapestHours.has(hourStart);\n    isExpensiveAggressive = (expensiveAggressiveTimes.length > 0) && expensiveAggressiveHours.has(hourStart);\n    isExpensive = (expensiveTimes.length > 0) && expensiveHours.has(hourStart);\n  } else {\n    isCheap = (cheapestTimes.length > 0) && cheapestSet.has(time);\n    isExpensiveAggressive = (expensiveAggressiveTimes.length > 0) && expensiveAggressiveSet.has(time);\n    isExpensive = (expensiveTimes.length > 0) && expensiveSet.has(time);\n  }\n\n  const isOverride = override1Enabled && override1Start && override1End && isInTimeRange(time, override1Start, override1End);\n  const overrideMode = isOverride ? override1Mode : null;\n\n  let color = 'transparent';\n  if (isOverride && overrideMode === 'idle') color = 'transparent';\n  else if (isOverride && overrideMode === 'charge') color = '#a3e635';\n  else if (isOverride && overrideMode === 'discharge') color = '#fb923c';\n  else if (isOverride && overrideMode === 'discharge_aggressive') color = '#dc2626';\n  else if (isCheap) color = '#22c55e';\n  else if (isExpensiveAggressive) color = '#dc2626';\n  else if (isExpensive) color = '#f97316';\n\n  return {\n    x: time,\n    y: 1,\n    fillColor: color,\n    cheap: isCheap,\n    expensive: isExpensive,\n    expensiveAggressive: isExpensiveAggressive,\n    override: isOverride,\n    overrideMode: overrideMode\n  };\n});\n",
+                            "data_generator": "const lastCalc = hass.states['sensor.cew_last_calculation']?.state; const priceSensor = hass.states['sensor.cew_price_sensor_proxy']; const cheapest = hass.states['sensor.cew_tomorrow']; if (!priceSensor?.attributes?.raw_tomorrow || !priceSensor.attributes.tomorrow_valid || !cheapest?.attributes) return [];\nconst pricingMode = hass.states['select.cew_pricing_window_duration']?.state || '15_minutes';\nconst actualChargeTimes = cheapest.attributes.actual_charge_times || []; const actualDischargeTimes = cheapest.attributes.actual_discharge_times || []; const aggressiveDischargeTimes = cheapest.attributes.expensive_times_aggressive || []; const spreadMet = cheapest.attributes.spread_met; const dischargeSpreadMet = cheapest.attributes.discharge_spread_met;\nconst chargeSet = new Set(actualChargeTimes.map(t => new Date(t).getTime())); const dischargeSet = new Set(actualDischargeTimes.map(t => new Date(t).getTime())); const aggressiveSet = new Set(aggressiveDischargeTimes.map(t => new Date(t).getTime()));\nconst override1Enabled = hass.states['switch.cew_time_override_enabled_tomorrow']?.state === 'on'; const override1Start = hass.states['time.cew_time_override_start_tomorrow']?.state; const override1End = hass.states['time.cew_time_override_end_tomorrow']?.state; const override1Mode = hass.states['select.cew_time_override_mode_tomorrow']?.state;\nfunction isInTimeRange(timeMs, startTime, endTime) {\n  const date = new Date(timeMs);\n  const timeStr = date.toTimeString().substring(0, 8);\n  return startTime <= timeStr && timeStr < endTime;\n}\nlet rawData = priceSensor.attributes.raw_tomorrow;\nconst chargeHours = (pricingMode === '1_hour')\n  ? new Set(Array.from(chargeSet).map(t => Math.floor(t / 3600000) * 3600000))\n  : null;\nconst dischargeHours = (pricingMode === '1_hour')\n  ? new Set(Array.from(dischargeSet).map(t => Math.floor(t / 3600000) * 3600000))\n  : null;\nconst aggressiveHours = (pricingMode === '1_hour')\n  ? new Set(Array.from(aggressiveSet).map(t => Math.floor(t / 3600000) * 3600000))\n  : null;\n\nreturn rawData.map(item => {\n  const time = new Date(item.start).getTime();\n\n  let isCharge, isDischarge, isAggressiveDischarge;\n  if (pricingMode === '1_hour') {\n    const hourStart = Math.floor(time / 3600000) * 3600000;\n    isCharge = (actualChargeTimes.length > 0) && chargeHours.has(hourStart);\n    isDischarge = (actualDischargeTimes.length > 0) && dischargeHours.has(hourStart);\n    isAggressiveDischarge = (aggressiveDischargeTimes.length > 0) && aggressiveHours.has(hourStart);\n  } else {\n    isCharge = (actualChargeTimes.length > 0) && chargeSet.has(time);\n    isDischarge = (actualDischargeTimes.length > 0) && dischargeSet.has(time);\n    isAggressiveDischarge = (aggressiveDischargeTimes.length > 0) && aggressiveSet.has(time);\n  }\n\n  const isOverride = override1Enabled && override1Start && override1End && isInTimeRange(time, override1Start, override1End);\n  const overrideMode = isOverride ? override1Mode : null;\n\n  let color = 'transparent';\n  if (isOverride && overrideMode === 'off') color = '#3f3f46';\n  else if (isOverride && overrideMode === 'idle') color = 'transparent';\n  else if (isOverride && overrideMode === 'charge') color = '#a3e635';\n  else if (isOverride && overrideMode === 'discharge') color = '#fb923c';\n  else if (isOverride && overrideMode === 'discharge_aggressive') color = '#dc2626';\n  else if (isCharge) color = '#22c55e';\n  else if (isAggressiveDischarge) color = '#dc2626';\n  else if (isDischarge) color = '#f97316';\n\n  return {\n    x: time,\n    y: 1,\n    fillColor: color,\n    charge: isCharge,\n    discharge: isDischarge,\n    aggressiveDischarge: isAggressiveDischarge,\n    override: isOverride,\n    overrideMode: overrideMode\n  };\n});\n",
                             "stroke_width": 0
+                          },
+                          {
+                            "entity": "sensor.cew_last_calculation",
+                            "name": "Calculation Trigger",
+                            "show": {
+                              "in_chart": false
+                            }
                           }
                         ]
                       },
@@ -676,7 +694,6 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         "header": {
                           "show": false
                         },
-                        "update_interval": "12s",
                         "experimental": {
                           "color_threshold": true
                         },
@@ -775,7 +792,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         },
                         "series": [
                           {
-                            "entity": "sensor.nordpool_kwh_nl_eur_3_10_0",
+                            "entity": "sensor.cew_price_sensor_proxy",
                             "name": "Price",
                             "type": "area",
                             "color_threshold": [
@@ -803,7 +820,14 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                             "curve": "stepline",
                             "stroke_width": 2,
                             "float_precision": 3,
-                            "data_generator": "const sensorName = hass.states['text.cew_price_sensor_entity']?.state || 'sensor.nordpool_kwh_nl_eur_3_10_0'; const nordpool = hass.states[sensorName];\nif (!nordpool?.attributes?.raw_tomorrow || !nordpool.attributes.tomorrow_valid) return [];\nconst pricingMode = hass.states['select.cew_pricing_window_duration']?.state || '15_minutes';\nconst add = parseFloat(hass.states['number.cew_additional_cost'].state) || 0.02398;\nconst tax = parseFloat(hass.states['number.cew_tax'].state) || 0.12286;\nconst vat = hass.states['number.cew_vat']?.state !== undefined ? parseFloat(hass.states['number.cew_vat'].state) : 0.21;\nlet rawData = nordpool.attributes.raw_tomorrow;\nif (pricingMode === '1_hour') {\n  const hourlyData = {};\n  rawData.forEach(item => {\n    const time = new Date(item.start).getTime();\n    const hourStart = Math.floor(time / 3600000) * 3600000;\n    if (!hourlyData[hourStart]) {\n      hourlyData[hourStart] = { values: [], count: 0 };\n    }\n    hourlyData[hourStart].values.push(item.value);\n    hourlyData[hourStart].count++;\n  });\n  rawData = Object.keys(hourlyData).map(h => {\n    const avgValue = hourlyData[h].values.reduce((a, b) => a + b, 0) / hourlyData[h].count;\n    return { start: new Date(parseInt(h)).toISOString(), value: avgValue };\n  });\n}\nreturn rawData.map(item => {\n  const price = (item.value * (1 + vat)) + tax + add;\n  return [new Date(item.start).getTime(), price];\n});\n"
+                            "data_generator": "const priceSensor = hass.states['sensor.cew_price_sensor_proxy'];\nif (!priceSensor?.attributes?.raw_tomorrow || !priceSensor.attributes.tomorrow_valid) return [];\nconst pricingMode = hass.states['select.cew_pricing_window_duration']?.state || '15_minutes';\nconst add = parseFloat(hass.states['number.cew_additional_cost'].state) || 0.02398;\nconst tax = parseFloat(hass.states['number.cew_tax'].state) || 0.12286;\nconst vat = hass.states['number.cew_vat']?.state !== undefined ? parseFloat(hass.states['number.cew_vat'].state) : 0.21;\nlet rawData = priceSensor.attributes.raw_tomorrow;\nif (pricingMode === '1_hour') {\n  const hourlyData = {};\n  rawData.forEach(item => {\n    const time = new Date(item.start).getTime();\n    const hourStart = Math.floor(time / 3600000) * 3600000;\n    if (!hourlyData[hourStart]) {\n      hourlyData[hourStart] = { values: [], count: 0 };\n    }\n    hourlyData[hourStart].values.push(item.value);\n    hourlyData[hourStart].count++;\n  });\n  rawData = Object.keys(hourlyData).map(h => {\n    const avgValue = hourlyData[h].values.reduce((a, b) => a + b, 0) / hourlyData[h].count;\n    return { start: new Date(parseInt(h)).toISOString(), value: avgValue };\n  });\n}\nreturn rawData.map(item => {\n  const price = (item.value * (1 + vat)) + tax + add;\n  return [new Date(item.start).getTime(), price];\n});\n"
+                          },
+                          {
+                            "entity": "select.cew_pricing_window_duration",
+                            "name": "Mode Trigger",
+                            "show": {
+                              "in_chart": false
+                            }
                           }
                         ]
                       },
@@ -871,14 +895,19 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                             "padding": 0,
                             "entities": [
                               {
+                                "type": "custom:mushroom-template-card",
+                                "primary": "Auto-applies at midnight (00:00)",
+                                "secondary": "Tomorrow's settings become active for today, then auto-disable",
+                                "icon": "mdi:information-outline",
+                                "icon_color": "amber",
+                                "tap_action": {
+                                  "action": "none"
+                                }
+                              },
+                              {
                                 "entity": "switch.cew_tomorrow_settings_enabled",
                                 "name": "Enable Tomorrow's Custom Settings",
                                 "icon": "mdi:calendar-clock"
-                              },
-                              {
-                                "entity": "switch.cew_midnight_rotation_notifications",
-                                "name": "Enable Midnight Rotation Notifications",
-                                "icon": "mdi:bell-ring"
                               },
                               {
                                 "type": "divider"
@@ -897,7 +926,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                   },
                                   {
                                     "entity": "number.cew_expensive_windows_tomorrow",
-                                    "name": "Expensive Windows (max)"
+                                    "name": "Discharge Windows (max)"
                                   },
                                   {
                                     "entity": "number.cew_cheap_percentile_tomorrow",
@@ -988,15 +1017,15 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                 "padding": 5,
                                 "entities": [
                                   {
-                                    "entity": "switch.cew_calculation_window_enabled",
+                                    "entity": "switch.cew_calculation_window_enabled_tomorrow",
                                     "name": "Enable Calculation Window"
                                   },
                                   {
-                                    "entity": "time.cew_calculation_window_start",
+                                    "entity": "time.cew_calculation_window_start_tomorrow",
                                     "name": "Window Start Time"
                                   },
                                   {
-                                    "entity": "time.cew_calculation_window_end",
+                                    "entity": "time.cew_calculation_window_end_tomorrow",
                                     "name": "Window End Time"
                                   }
                                 ]
@@ -1011,7 +1040,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           "sensor.cew_tomorrow"
                         ],
                         "card_mod": {
-                          "style": "ha-card { min-height: 200px; }"
+                          "style": "ha-card {\n  min-height: 200px;\n}\n"
                         },
                         "content": "**⚡ Charge Windows** ({{ (state_attr('sensor.cew_tomorrow', 'actual_charge_times') or []) | length }} periods){% set times = state_attr('sensor.cew_tomorrow', 'actual_charge_times') or [] %}{% set prices = state_attr('sensor.cew_tomorrow', 'actual_charge_prices') or [] %}{% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %}{% set charge_power_kw = states('number.cew_charge_power') | float(0) / 1000 %}{% set total_cost = (prices | sum) * window_duration * charge_power_kw if prices else 0 %}{% if prices | length > 0 %} • Cost: €{{ total_cost | round(2) }}{% endif %}\n{% if times | length > 0 %} {% set window_seconds = 3600 if states('select.cew_pricing_window_duration') == '1_hour' else 900 %} {% set ns = namespace(items=[], groups=[]) %} {% for i in range(times | length) %} {% set ns.items = ns.items + [{'time': as_timestamp(times[i]), 'price': prices[i]}] %} {% endfor %} {% set sorted_items = ns.items | sort(attribute='time') %} {% set ns = namespace(current_group={'start': sorted_items[0].time, 'end': sorted_items[0].time + window_seconds, 'prices': [sorted_items[0].price]}, groups=[]) %} {% for item in sorted_items[1:] %} {% if item.time == ns.current_group.end %} {% set ns.current_group = {'start': ns.current_group.start, 'end': item.time + window_seconds, 'prices': ns.current_group.prices + [item.price]} %} {% else %} {% set ns.groups = ns.groups + [ns.current_group] %} {% set ns.current_group = {'start': item.time, 'end': item.time + window_seconds, 'prices': [item.price]} %} {% endif %} {% endfor %} {% set ns.groups = ns.groups + [ns.current_group] %} {% for group in ns.groups %} **{{ group.start | timestamp_custom('%H:%M') }}-{{ group.end | timestamp_custom('%H:%M') }}** • Avg: €{{ (group.prices | sum / group.prices | length) | round(3) }}{% if not loop.last %}\n{% endif %} {% endfor %} {% else %} *No charge windows scheduled* {% endif %}\n&nbsp;\n**🔋 Discharge Windows** ({{ (state_attr('sensor.cew_tomorrow', 'actual_discharge_times') or []) | length }} periods){% set times = state_attr('sensor.cew_tomorrow', 'actual_discharge_times') or [] %}{% set prices = state_attr('sensor.cew_tomorrow', 'actual_discharge_prices') or [] %}{% set window_duration = 1.0 if states('select.cew_pricing_window_duration') == '1_hour' else 0.25 %}{% set discharge_power_kw = states('number.cew_discharge_power') | float(0) / 1000 %}{% set total_revenue = (prices | sum) * window_duration * discharge_power_kw if prices else 0 %}{% if prices | length > 0 %} • Revenue: €{{ total_revenue | round(2) }}{% endif %}\n{% if times | length > 0 %} {% set window_seconds = 3600 if states('select.cew_pricing_window_duration') == '1_hour' else 900 %} {% set ns = namespace(items=[], groups=[]) %} {% for i in range(times | length) %} {% set ns.items = ns.items + [{'time': as_timestamp(times[i]), 'price': prices[i]}] %} {% endfor %} {% set sorted_items = ns.items | sort(attribute='time') %} {% set ns = namespace(current_group={'start': sorted_items[0].time, 'end': sorted_items[0].time + window_seconds, 'prices': [sorted_items[0].price]}, groups=[]) %} {% for item in sorted_items[1:] %} {% if item.time == ns.current_group.end %} {% set ns.current_group = {'start': ns.current_group.start, 'end': item.time + window_seconds, 'prices': ns.current_group.prices + [item.price]} %} {% else %} {% set ns.groups = ns.groups + [ns.current_group] %} {% set ns.current_group = {'start': item.time, 'end': item.time + window_seconds, 'prices': [item.price]} %} {% endif %} {% endfor %} {% set ns.groups = ns.groups + [ns.current_group] %} {% for group in ns.groups %} **{{ group.start | timestamp_custom('%H:%M') }}-{{ group.end | timestamp_custom('%H:%M') }}** • Avg: €{{ (group.prices | sum / group.prices | length) | round(3) }}{% if not loop.last %}\n{% endif %} {% endfor %} {% else %} *No discharge windows scheduled* {% endif %}"
                       }
@@ -1037,7 +1066,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         "icon": "",
                         "features_position": "bottom",
                         "card_mod": {
-                          "style": "ha-card { box-shadow: none; background: none; }"
+                          "style": "ha-card {\n  box-shadow: none;\n  background: none;\n}\n"
                         }
                       },
                       {
@@ -1053,7 +1082,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                       },
                       {
                         "type": "custom:mushroom-template-card",
-                        "primary": "{% set state = states('sensor.cew_today') %}\n{% set price_override = state_attr('sensor.cew_today', 'price_override_active') %}\n{% if state == 'off' %}⛔ Automation Off\n{% elif state == 'charge' and price_override %}💰 Price Override Charging\n{% elif state == 'charge' %}🔋 Charging\n{% elif state == 'discharge_aggressive' %}⚡ Peak Discharge\n{% elif state == 'discharge' %}🔌 Discharging\n{% else %}💡 Normal Pricing\n{% endif %}\n",
+                        "primary": "{% set state = states('sensor.cew_today') %}\n{% set price_override = state_attr('sensor.cew_today', 'price_override_active') %}\n{% set automation_enabled = is_state('switch.cew_automation_enabled', 'on') %}\n{% if state == 'off' and not automation_enabled %}⛔ Automation Disabled\n{% elif state == 'off' and automation_enabled %}🔌 Battery Off\n{% elif state == 'charge' and price_override %}💰 Price Override Charging\n{% elif state == 'charge' %}🔋 Charging\n{% elif state == 'discharge_aggressive' %}⚡ Peak Discharge\n{% elif state == 'discharge' %}🔌 Discharging\n{% else %}💡 Normal Pricing\n{% endif %}\n",
                         "secondary": "{% set current_price = state_attr('sensor.cew_today', 'current_price') | float(0) %}\nCurrent: €{{ current_price | round(3) }}/kWh\n",
                         "icon": "{% set state = states('sensor.cew_today') %}\n{% set price_override = state_attr('sensor.cew_today', 'price_override_active') %}\n{% if state == 'off' %}mdi:power-off\n{% elif state == 'charge' and price_override %}mdi:currency-eur\n{% elif state == 'charge' %}mdi:battery-charging\n{% elif state == 'discharge_aggressive' %}mdi:battery-alert\n{% elif state == 'discharge' %}mdi:battery-minus\n{% else %}mdi:battery-heart\n{% endif %}\n",
                         "tap_action": {
@@ -1071,7 +1100,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         "icon": "",
                         "features_position": "bottom",
                         "card_mod": {
-                          "style": "ha-card { box-shadow: none; background: none; }"
+                          "style": "ha-card {\n  box-shadow: none;\n  background: none;\n}\n"
                         }
                       },
                       {
@@ -1145,7 +1174,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                 "entities": [
                                   {
                                     "entity": "switch.cew_notifications_enabled",
-                                    "name": "Enable All Notifications",
+                                    "name": "Enable Notifications",
                                     "icon": "mdi:bell"
                                   },
                                   {
@@ -1173,6 +1202,11 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                     "icon": "mdi:battery-sync"
                                   },
                                   {
+                                    "entity": "switch.cew_notify_off",
+                                    "name": "Notify on Battery Off",
+                                    "icon": "mdi:battery-off"
+                                  },
+                                  {
                                     "entity": "switch.cew_notify_automation_disabled",
                                     "name": "Notify on Automation Disabled",
                                     "icon": "mdi:bell-off"
@@ -1195,6 +1229,15 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                     "entity": "time.cew_quiet_hours_end",
                                     "name": "Quiet Hours End",
                                     "icon": "mdi:weather-sunset-up"
+                                  },
+                                  {
+                                    "type": "section",
+                                    "label": "Other Notifications"
+                                  },
+                                  {
+                                    "entity": "switch.cew_midnight_rotation_notifications",
+                                    "name": "Notify on Midnight Settings Rotation",
+                                    "icon": "mdi:bell-ring"
                                   }
                                 ]
                               },
@@ -1206,6 +1249,26 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                 },
                                 "padding": 0,
                                 "entities": [
+                                  {
+                                    "type": "custom:mushroom-template-card",
+                                    "primary": "Configure Battery System Sensors",
+                                    "secondary": "Paste entity IDs from Developer Tools → States",
+                                    "icon": "mdi:information-outline",
+                                    "icon_color": "grey",
+                                    "tap_action": {
+                                      "action": "none"
+                                    }
+                                  },
+                                  {
+                                    "type": "custom:mushroom-template-card",
+                                    "primary": "Example",
+                                    "secondary": "sensor.battery_soc, sensor.battery_available_energy",
+                                    "icon": "mdi:lightbulb-outline",
+                                    "icon_color": "amber",
+                                    "tap_action": {
+                                      "action": "none"
+                                    }
+                                  },
                                   {
                                     "entity": "text.cew_battery_system_name",
                                     "name": "System Name",
@@ -1260,6 +1323,166 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                     "icon": "mdi:battery-20"
                                   }
                                 ]
+                              },
+                              {
+                                "type": "custom:fold-entity-row",
+                                "head": {
+                                  "type": "section",
+                                  "label": "⚙️ Battery Operations Settings"
+                                },
+                                "padding": 0,
+                                "entities": [
+                                  {
+                                    "type": "custom:mushroom-template-card",
+                                    "primary": "Link Automations to Battery Modes",
+                                    "secondary": "Select automations/scripts to trigger for each mode",
+                                    "icon": "mdi:robot",
+                                    "icon_color": "blue",
+                                    "tap_action": {
+                                      "action": "none"
+                                    }
+                                  },
+                                  {
+                                    "type": "custom:mushroom-template-card",
+                                    "primary": "Example",
+                                    "secondary": "automation.battery_charge, script.battery_manual_mode",
+                                    "icon": "mdi:lightbulb-outline",
+                                    "icon_color": "amber",
+                                    "tap_action": {
+                                      "action": "none"
+                                    }
+                                  },
+                                  {
+                                    "entity": "text.cew_battery_idle_action",
+                                    "name": "Idle Mode Action",
+                                    "icon": "mdi:sleep"
+                                  },
+                                  {
+                                    "entity": "text.cew_battery_charge_action",
+                                    "name": "Charge Mode Action",
+                                    "icon": "mdi:battery-charging"
+                                  },
+                                  {
+                                    "entity": "text.cew_battery_discharge_action",
+                                    "name": "Discharge Mode Action",
+                                    "icon": "mdi:battery-minus"
+                                  },
+                                  {
+                                    "entity": "text.cew_battery_aggressive_discharge_action",
+                                    "name": "Aggressive Discharge Mode Action",
+                                    "icon": "mdi:battery-alert"
+                                  },
+                                  {
+                                    "entity": "text.cew_battery_off_action",
+                                    "name": "Off Mode Action",
+                                    "icon": "mdi:power-off"
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "custom:fold-entity-row",
+                                "head": {
+                                  "type": "section",
+                                  "label": "🎮 Battery Operations Triggers"
+                                },
+                                "padding": 0,
+                                "entities": [
+                                  {
+                                    "type": "custom:mushroom-template-card",
+                                    "primary": "Test Battery Modes",
+                                    "secondary": "Manually trigger configured automations",
+                                    "icon": "mdi:robot",
+                                    "icon_color": "blue",
+                                    "tap_action": {
+                                      "action": "none"
+                                    }
+                                  },
+                                  {
+                                    "type": "custom:mushroom-template-card",
+                                    "primary": "Trigger Idle",
+                                    "secondary": "{{ states('text.cew_battery_idle_action') }}",
+                                    "icon": "mdi:sleep",
+                                    "icon_color": "grey",
+                                    "tap_action": {
+                                      "action": "call-service",
+                                      "service": "cheapest_energy_windows.trigger_battery_action",
+                                      "service_data": {
+                                        "mode": "idle"
+                                      },
+                                      "confirmation": {
+                                        "text": "Trigger idle mode action?"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "custom:mushroom-template-card",
+                                    "primary": "Trigger Charge",
+                                    "secondary": "{{ states('text.cew_battery_charge_action') }}",
+                                    "icon": "mdi:battery-charging",
+                                    "icon_color": "green",
+                                    "tap_action": {
+                                      "action": "call-service",
+                                      "service": "cheapest_energy_windows.trigger_battery_action",
+                                      "service_data": {
+                                        "mode": "charge"
+                                      },
+                                      "confirmation": {
+                                        "text": "Trigger charge mode action?"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "custom:mushroom-template-card",
+                                    "primary": "Trigger Discharge",
+                                    "secondary": "{{ states('text.cew_battery_discharge_action') }}",
+                                    "icon": "mdi:battery-minus",
+                                    "icon_color": "orange",
+                                    "tap_action": {
+                                      "action": "call-service",
+                                      "service": "cheapest_energy_windows.trigger_battery_action",
+                                      "service_data": {
+                                        "mode": "discharge"
+                                      },
+                                      "confirmation": {
+                                        "text": "Trigger discharge mode action?"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "custom:mushroom-template-card",
+                                    "primary": "Trigger Aggressive Discharge",
+                                    "secondary": "{{ states('text.cew_battery_aggressive_discharge_action') }}",
+                                    "icon": "mdi:battery-alert",
+                                    "icon_color": "red",
+                                    "tap_action": {
+                                      "action": "call-service",
+                                      "service": "cheapest_energy_windows.trigger_battery_action",
+                                      "service_data": {
+                                        "mode": "aggressive_discharge"
+                                      },
+                                      "confirmation": {
+                                        "text": "Trigger aggressive discharge mode action?"
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "custom:mushroom-template-card",
+                                    "primary": "Trigger Off",
+                                    "secondary": "{{ states('text.cew_battery_off_action') }}",
+                                    "icon": "mdi:power-off",
+                                    "icon_color": "blue",
+                                    "tap_action": {
+                                      "action": "call-service",
+                                      "service": "cheapest_energy_windows.trigger_battery_action",
+                                      "service_data": {
+                                        "mode": "off"
+                                      },
+                                      "confirmation": {
+                                        "text": "Trigger off mode action?"
+                                      }
+                                    }
+                                  }
+                                ]
                               }
                             ]
                           }
@@ -1272,7 +1495,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         "icon": "",
                         "features_position": "bottom",
                         "card_mod": {
-                          "style": "ha-card { box-shadow: none; background: none; }"
+                          "style": "ha-card {\n  box-shadow: none;\n  background: none;\n}\n"
                         }
                       },
                       {
@@ -1359,7 +1582,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         "icon": "",
                         "features_position": "bottom",
                         "card_mod": {
-                          "style": "ha-card { box-shadow: none; background: none; }"
+                          "style": "ha-card {\n  box-shadow: none;\n  background: none;\n}\n"
                         }
                       },
                       {
@@ -1431,7 +1654,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                 "type": "custom:mushroom-template-card",
                                 "entity": "sensor.cew_today",
                                 "primary": "Net Price",
-                                "secondary": "{% set sensorName = states('text.cew_price_sensor_entity') or 'sensor.nordpool_kwh_nl_eur_3_10_0' %} {% set nordpool = states[sensorName] %} {% set add = states('number.cew_additional_cost') | float(0.02398) %} {% set tax = states('number.cew_tax') | float(0.12286) %} {% set vat = states('number.cew_vat') | float(0.21) %} {% set pricing_mode = states('select.cew_pricing_window_duration') | default('15_minutes') %} {% set charge_times = state_attr('sensor.cew_today', 'actual_charge_times') or [] %} {% set discharge_times = state_attr('sensor.cew_today', 'actual_discharge_times') or [] %} {% set ns = namespace(charge_prices=[], discharge_prices=[]) %} {% if nordpool.attributes.raw_today %}\n  {% for time in charge_times %}\n    {% if pricing_mode == '1_hour' %}\n      {% set hour_sum = namespace(value=0, count=0) %}\n      {% set hour_str = time | as_datetime | string %}\n      {% set hour_str = hour_str[11:13] %}\n      {% for item in nordpool.attributes.raw_today %}\n        {% set raw_time = item.start | replace('\"', '') %}\n        {% if raw_time[11:13] == hour_str %}\n          {% set hour_sum.value = hour_sum.value + item.value %}\n          {% set hour_sum.count = hour_sum.count + 1 %}\n        {% endif %}\n      {% endfor %}\n      {% if hour_sum.count > 0 %}\n        {% set avg_value = hour_sum.value / hour_sum.count %}\n        {% set actual_price = avg_value * (1 + vat) + tax + add %}\n        {% set ns.charge_prices = ns.charge_prices + [actual_price] %}\n      {% endif %}\n    {% else %}\n      {% set time_ts = as_timestamp(time) %}\n      {% for item in nordpool.attributes.raw_today %}\n        {% set raw_time = item.start | replace('\"', '') | as_datetime | as_timestamp %}\n        {% if raw_time == time_ts %}\n          {% set ns.charge_prices = ns.charge_prices + [(item.value | float(0)) * (1 + vat) + tax + add] %}\n        {% endif %}\n      {% endfor %}\n    {% endif %}\n  {% endfor %}\n  {% for time in discharge_times %}\n    {% if pricing_mode == '1_hour' %}\n      {% set hour_sum = namespace(value=0, count=0) %}\n      {% set hour_str = time | as_datetime | string %}\n      {% set hour_str = hour_str[11:13] %}\n      {% for item in nordpool.attributes.raw_today %}\n        {% set raw_time = item.start | replace('\"', '') %}\n        {% if raw_time[11:13] == hour_str %}\n          {% set hour_sum.value = hour_sum.value + item.value %}\n          {% set hour_sum.count = hour_sum.count + 1 %}\n        {% endif %}\n      {% endfor %}\n      {% if hour_sum.count > 0 %}\n        {% set avg_value = hour_sum.value / hour_sum.count %}\n        {% set actual_price = avg_value * (1 + vat) + tax + add %}\n        {% set ns.discharge_prices = ns.discharge_prices + [actual_price] %}\n      {% endif %}\n    {% else %}\n      {% set time_ts = as_timestamp(time) %}\n      {% for item in nordpool.attributes.raw_today %}\n        {% set raw_time = item.start | replace('\"', '') | as_datetime | as_timestamp %}\n        {% if raw_time == time_ts %}\n          {% set ns.discharge_prices = ns.discharge_prices + [(item.value | float(0)) * (1 + vat) + tax + add] %}\n        {% endif %}\n      {% endfor %}\n    {% endif %}\n  {% endfor %}\n{% endif %} {% set avg_cheap = (ns.charge_prices | sum / ns.charge_prices | length) if ns.charge_prices | length > 0 else 0 %} {% set avg_expensive = (ns.discharge_prices | sum / ns.discharge_prices | length) if ns.discharge_prices | length > 0 else 0 %} {% set num_cheap = charge_times | length %} {% set num_expensive = discharge_times | length %} {% set charge_power = states('number.cew_charge_power') | float(0) / 1000 %} {% set discharge_power = states('number.cew_discharge_power') | float(0) / 1000 %} {% set rte = states('number.cew_battery_rte') | float(90) / 100 %} {% set window_duration = 1.0 if pricing_mode == '1_hour' else 0.25 %} {% set charged_kwh = num_cheap * window_duration * charge_power %} {% set usable_kwh = charged_kwh * rte %} {% if num_expensive > 0 %}\n  {% set discharged_kwh = num_expensive * window_duration * discharge_power %}\n  {% set charge_cost = charged_kwh * avg_cheap %}\n  {% set discharge_revenue = discharged_kwh * avg_expensive %}\n  {% set net_cost = charge_cost - discharge_revenue %}\n  {% set net_kwh = usable_kwh - discharged_kwh %}\n  {% set net_price = (net_cost / (net_kwh | abs)) if net_kwh != 0 else (avg_expensive - avg_cheap) %}\n{% elif num_cheap > 0 %}\n  {% set net_price = avg_cheap / rte %}\n{% else %}\n  {% set net_price = 0 %}\n{% endif %} €{{ net_price | round(3) }}/kWh",
+                                "secondary": "{% set priceSensor = states['sensor.cew_price_sensor_proxy'] %} {% set add = states('number.cew_additional_cost') | float(0.02398) %} {% set tax = states('number.cew_tax') | float(0.12286) %} {% set vat = states('number.cew_vat') | float(0.21) %} {% set pricing_mode = states('select.cew_pricing_window_duration') | default('15_minutes') %} {% set charge_times = state_attr('sensor.cew_today', 'actual_charge_times') or [] %} {% set discharge_times = state_attr('sensor.cew_today', 'actual_discharge_times') or [] %} {% set ns = namespace(charge_prices=[], discharge_prices=[]) %} {% if priceSensor.attributes.raw_today %}\n  {% for time in charge_times %}\n    {% if pricing_mode == '1_hour' %}\n      {% set hour_sum = namespace(value=0, count=0) %}\n      {% set hour_str = time | as_datetime | string %}\n      {% set hour_str = hour_str[11:13] %}\n      {% for item in priceSensor.attributes.raw_today %}\n        {% set raw_time = item.start | replace('\"', '') %}\n        {% if raw_time[11:13] == hour_str %}\n          {% set hour_sum.value = hour_sum.value + item.value %}\n          {% set hour_sum.count = hour_sum.count + 1 %}\n        {% endif %}\n      {% endfor %}\n      {% if hour_sum.count > 0 %}\n        {% set avg_value = hour_sum.value / hour_sum.count %}\n        {% set actual_price = avg_value * (1 + vat) + tax + add %}\n        {% set ns.charge_prices = ns.charge_prices + [actual_price] %}\n      {% endif %}\n    {% else %}\n      {% set time_ts = as_timestamp(time) %}\n      {% for item in priceSensor.attributes.raw_today %}\n        {% set raw_time = item.start | replace('\"', '') | as_datetime | as_timestamp %}\n        {% if raw_time == time_ts %}\n          {% set ns.charge_prices = ns.charge_prices + [(item.value | float(0)) * (1 + vat) + tax + add] %}\n        {% endif %}\n      {% endfor %}\n    {% endif %}\n  {% endfor %}\n  {% for time in discharge_times %}\n    {% if pricing_mode == '1_hour' %}\n      {% set hour_sum = namespace(value=0, count=0) %}\n      {% set hour_str = time | as_datetime | string %}\n      {% set hour_str = hour_str[11:13] %}\n      {% for item in priceSensor.attributes.raw_today %}\n        {% set raw_time = item.start | replace('\"', '') %}\n        {% if raw_time[11:13] == hour_str %}\n          {% set hour_sum.value = hour_sum.value + item.value %}\n          {% set hour_sum.count = hour_sum.count + 1 %}\n        {% endif %}\n      {% endfor %}\n      {% if hour_sum.count > 0 %}\n        {% set avg_value = hour_sum.value / hour_sum.count %}\n        {% set actual_price = avg_value * (1 + vat) + tax + add %}\n        {% set ns.discharge_prices = ns.discharge_prices + [actual_price] %}\n      {% endif %}\n    {% else %}\n      {% set time_ts = as_timestamp(time) %}\n      {% for item in priceSensor.attributes.raw_today %}\n        {% set raw_time = item.start | replace('\"', '') | as_datetime | as_timestamp %}\n        {% if raw_time == time_ts %}\n          {% set ns.discharge_prices = ns.discharge_prices + [(item.value | float(0)) * (1 + vat) + tax + add] %}\n        {% endif %}\n      {% endfor %}\n    {% endif %}\n  {% endfor %}\n{% endif %} {% set avg_cheap = (ns.charge_prices | sum / ns.charge_prices | length) if ns.charge_prices | length > 0 else 0 %} {% set avg_expensive = (ns.discharge_prices | sum / ns.discharge_prices | length) if ns.discharge_prices | length > 0 else 0 %} {% set num_cheap = charge_times | length %} {% set num_expensive = discharge_times | length %} {% set charge_power = states('number.cew_charge_power') | float(0) / 1000 %} {% set discharge_power = states('number.cew_discharge_power') | float(0) / 1000 %} {% set rte = states('number.cew_battery_rte') | float(90) / 100 %} {% set window_duration = 1.0 if pricing_mode == '1_hour' else 0.25 %} {% set charged_kwh = num_cheap * window_duration * charge_power %} {% set usable_kwh = charged_kwh * rte %} {% if num_expensive > 0 %}\n  {% set discharged_kwh = num_expensive * window_duration * discharge_power %}\n  {% set charge_cost = charged_kwh * avg_cheap %}\n  {% set discharge_revenue = discharged_kwh * avg_expensive %}\n  {% set net_cost = charge_cost - discharge_revenue %}\n  {% set net_kwh = usable_kwh - discharged_kwh %}\n  {% set net_price = (net_cost / (net_kwh | abs)) if net_kwh != 0 else (avg_expensive - avg_cheap) %}\n{% elif num_cheap > 0 %}\n  {% set net_price = avg_cheap / rte %}\n{% else %}\n  {% set net_price = 0 %}\n{% endif %} €{{ net_price | round(3) }}/kWh",
                                 "icon": "mdi:currency-eur",
                                 "color": "{% set num_cheap = state_attr('sensor.cew_today', 'actual_charge_times') | default([]) | length %} {% if num_cheap > 0 %}green{% else %}grey{% endif %}",
                                 "tap_action": {
@@ -1449,7 +1672,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         "icon": "",
                         "features_position": "bottom",
                         "card_mod": {
-                          "style": "ha-card { box-shadow: none; background: none; }"
+                          "style": "ha-card {\n  box-shadow: none;\n  background: none;\n}\n"
                         }
                       },
                       {
@@ -1538,7 +1761,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         "icon": "",
                         "features_position": "bottom",
                         "card_mod": {
-                          "style": "ha-card { box-shadow: none; background: none; }"
+                          "style": "ha-card {\n  box-shadow: none;\n  background: none;\n}\n"
                         }
                       }
                     ]
