@@ -2,16 +2,29 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
+<a href="https://www.buymeacoffee.com/cheapest_energy_windows" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+
 A beautiful, comprehensive dashboard for the [Cheapest Energy Windows](https://github.com/cheapest-energy-windows/cheapest_energy_windows) Home Assistant integration.
 
 ![Dashboard Preview](CEW-Dashboard.jpg)
+
+## 🌟 Why This Dashboard?
+
+This isn't just another energy monitoring dashboard. It's a complete control center that:
+
+- **Zero YAML editing** - Configure everything through the UI
+- **Battery Operations Linking** - Connect your battery control with simple dropdowns
+- **Full Settings Control** - Every integration setting accessible from one place
+- **Real-time Visualization** - See energy windows, costs, and battery status at a glance
+- **Professional Features** - SOC safety indicators, notification management, quiet hours
+- **Multi-vendor Support** - Works seamlessly with Nord Pool and ENTSO-E sensors
 
 ## 📋 Prerequisites
 
 This dashboard **requires** the main Cheapest Energy Windows integration to be installed first:
 
 1. Install the [Cheapest Energy Windows Integration](https://github.com/cheapest-energy-windows/cheapest_energy_windows) via HACS
-2. Configure the integration with your Nord Pool sensor
+2. Configure the integration with your price sensor (Nord Pool or ENTSO-E)
 
 ## 🚀 Installation
 
@@ -53,15 +66,34 @@ views: []
 
 ## ✨ Features
 
+### 🎯 Control Everything from One Place
+
 The dashboard includes:
 
+- **🔋 Battery Operations Panel** - Link automations/scripts/scenes without editing YAML
 - **📅 Today's Energy Windows** - View current charge/discharge periods with pricing
-- **🌅 Tomorrow's Energy Windows** - Plan ahead with tomorrow's schedules (after 13:00 CET)
-- **⚙️ Configuration Panel** - Adjust all settings directly from the dashboard
+- **🌅 Tomorrow's Energy Windows** - Plan ahead with tomorrow's schedules
+- **⚙️ Complete Settings Control** - Adjust ALL integration settings from the dashboard:
+  - Pricing windows and percentiles
+  - Battery SOC safety limits
+  - Time and price overrides
+  - Notification preferences with quiet hours
+  - Tomorrow's independent settings
 - **📊 Visual Charts** - ApexCharts showing energy periods throughout the day
-- **⚡ Real-time Status** - See current mode and active overrides
-- **🔋 Battery Management** - (If battery section enabled) Monitor SOC, charge/discharge rates
-- **💰 Cost Tracking** - Financial summaries and projections
+- **⚡ Real-time Status** - Current mode, active overrides, and battery state
+- **🔔 Notification Management** - Configure which states trigger notifications
+- **💰 Cost Tracking** - Financial summaries and daily cost/revenue projections
+- **🛡️ SOC Protection Status** - Visual indicators when SOC safety is active
+
+### 🤖 No YAML Editing Required
+
+Everything can be configured through the dashboard UI:
+- Link battery operations to your existing automations
+- Adjust all calculation parameters
+- Set time-based overrides
+- Configure notifications and quiet hours
+- Enable tomorrow's settings
+- Monitor battery metrics and costs
 
 ## 🎨 Required Custom Cards
 
@@ -82,8 +114,13 @@ This dashboard uses several custom Lovelace cards. Install these via HACS Fronte
 
 ### Dashboard is empty or shows errors
 - Ensure the Cheapest Energy Windows integration is installed and configured
-- Check that your Nord Pool sensor is working
+- Check that your price sensor (Nord Pool or ENTSO-E) is working and providing data
 - Verify all entities from the integration exist
+
+### Charts not showing data for ENTSO-E sensors
+- Ensure the proxy sensor (`sensor.cew_price_sensor_proxy`) exists and has data
+- Check that your ENTSO-E sensor provides `prices_today` and `prices_tomorrow` attributes
+- Verify Docker timezone configuration if timestamps appear incorrect
 
 ### Strategy not appearing in dropdown
 - Verify the resource is added as "JavaScript Module" type
