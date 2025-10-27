@@ -2,7 +2,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
-<a href="https://www.buymeacoffee.com/cheapest_energy_windows" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" ></a>
+<a href="https://www.buymeacoffee.com/cheapest_energy_windows" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 30px !important;width: 100px !important;" ></a>
 
 A beautiful, comprehensive dashboard for the [Cheapest Energy Windows](https://github.com/cheapest-energy-windows/cheapest_energy_windows) Home Assistant integration.
 
