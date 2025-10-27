@@ -30,7 +30,7 @@ This dashboard **requires** the main Cheapest Energy Windows integration to be i
 
 ### Via HACS (Recommended)
 
-#### Option 1: Direct Install (Once Available in HACS)
+#### Option 1: Direct Install 
 [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=cheapest-energy-windows&repository=cheapest_energy_windows_dashboard&category=dashboard)
 
 Click the button above to open this dashboard directly in HACS, then click "Download".
