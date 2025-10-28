@@ -1124,7 +1124,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                                 "entities": [
                                   {
                                     "entity": "text.cew_price_sensor_entity",
-                                    "name": "Nordpool Sensor Entity ID",
+                                    "name": "Price Sensor Entity ID",
                                     "icon": "mdi:flash"
                                   },
                                   {
