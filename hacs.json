@@ -1,6 +1,5 @@
 {
   "name": "Cheapest Energy Windows Dashboard",
   "render_readme": true,
-  "filename": "cew-dashboard-strategy.js",
-  "version": "1.0.7"
+  "filename": "cew-dashboard-strategy.js"
 }
