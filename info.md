@@ -2,6 +2,8 @@
 
 Beautiful, comprehensive dashboard for visualizing and managing your energy windows.
 
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=cheapest-energy-windows&repository=cheapest_energy_windows_dashboard&category=dashboard)
+
 ### ⚠️ Prerequisites
 
 **This dashboard requires the main integration!**
@@ -19,7 +21,13 @@ Install these from HACS → Frontend:
 
 ### Quick Start
 
-After installation, add to `/config/configuration.yaml`:
+> ✨ Click the badge above for one-click HACS installation, or follow these manual steps:
+
+1. Open HACS in Home Assistant
+2. Click on "Frontend"
+3. Search for "Cheapest Energy Windows Dashboard"
+4. Click "Download"
+5. Add to `/config/configuration.yaml`:
 
 ```yaml
 lovelace:
@@ -33,14 +41,14 @@ lovelace:
       filename: dashboards/energy_windows.yaml
 ```
 
-Create `/config/dashboards/energy_windows.yaml`:
+6. Create `/config/dashboards/energy_windows.yaml`:
 
 ```yaml
 strategy:
   type: custom:dashboard-cheapest-energy-windows
 ```
 
-Restart HA - your dashboard appears automatically! ✨
+7. Restart Home Assistant - your dashboard appears automatically! ✨
 
 ### What You Get
 
@@ -50,6 +58,19 @@ Restart HA - your dashboard appears automatically! ✨
 - 💰 Cost tracking and projections
 - 🔋 Battery management (if enabled)
 
----
+## Support
 
-For detailed documentation, see the README.
+- [Integration Documentation](https://github.com/cheapest-energy-windows/cheapest_energy_windows)
+- [Report Issues](https://github.com/cheapest-energy-windows/cheapest_energy_windows_dashboard/issues)
+- [Community Discussion](https://community.home-assistant.io/)
+
+{% if installed %}
+## Installed Version: {{ version }}
+
+Thank you for using Cheapest Energy Windows Dashboard!
+
+### Next Steps
+- Configure your integration settings through the dashboard
+- Set up battery operations linking if you have a battery system
+- Check the integration's sensors for detailed energy data
+{% endif %}
