@@ -7,7 +7,7 @@ Beautiful, comprehensive dashboard for visualizing and managing your energy wind
 **This dashboard requires the main integration!**
 
 Make sure you have installed:
-- [Cheapest Energy Windows Integration](https://github.com/cew-hacs/cheapest_energy_windows)
+- [Cheapest Energy Windows Integration](https://github.com/cheapest-energy-windows/cheapest_energy_windows)
 
 ### Required Custom Cards
 
