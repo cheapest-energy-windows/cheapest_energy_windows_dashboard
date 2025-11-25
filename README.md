@@ -1,6 +1,6 @@
 # Cheapest Energy Windows Dashboard
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=cheapest-energy-windows&repository=cheapest_energy_windows_dashboard&category=dashboard)
 
 
 A beautiful, comprehensive dashboard for the [Cheapest Energy Windows](https://github.com/cheapest-energy-windows/cheapest_energy_windows) Home Assistant integration.
@@ -138,6 +138,11 @@ For issues specific to:
 - **This dashboard**: Open an issue in this repository
 - **The integration**: Visit the [main integration repository](https://github.com/cheapest-energy-windows/cheapest_energy_windows)
 
+### Quick Links
+- [Integration Documentation](https://github.com/cheapest-energy-windows/cheapest_energy_windows)
+- [Report Dashboard Issues](https://github.com/cheapest-energy-windows/cheapest_energy_windows_dashboard/issues)
+- [Community Discussion](https://community.home-assistant.io/)
+
 ## 📝 License
 
 MIT License - feel free to modify and share!
@@ -147,3 +152,16 @@ MIT License - feel free to modify and share!
 If you find this dashboard useful, consider supporting the main integration developer:
 
 [![Buy Me A Coffee](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/cheapest_energy_windows)
+
+---
+
+{% if installed %}
+## Installed Version: {{ version }}
+
+Thank you for using Cheapest Energy Windows Dashboard!
+
+### Next Steps
+- Configure your integration settings through the dashboard
+- Set up battery operations linking if you have a battery system
+- Check the integration's sensors for detailed energy data
+{% endif %}
