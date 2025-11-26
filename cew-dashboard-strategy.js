@@ -917,7 +917,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           {
                             "type": "custom:mushroom-template-card",
                             "primary": "Daily Cost",
-                            "secondary": "{% set planned = state_attr('sensor.cew_tomorrow',\n'planned_total_cost') | float(0) %}\n\n{% set total_windows =\n(state_attr('sensor.cew_tomorrow', 'actual_charge_times')\n| default([], true) | length) +\n(state_attr('sensor.cew_tomorrow',\n'actual_discharge_times') | default([], true) | length) %}\n\n{{ '€' + (planned | round(2) | string) }}\n{{\ntotal_windows }}\n",
+                            "secondary": "{% set planned = state_attr('sensor.cew_tomorrow',\n'planned_total_cost') | float(0) %}\n\n{% set total_windows =\n(state_attr('sensor.cew_tomorrow', 'actual_charge_times')\n| default([], true) | length) +\n(state_attr('sensor.cew_tomorrow',\n'actual_discharge_times') | default([], true) | length) %}\n\n{{ '€' + (planned | round(2) | string) }}\n0/{{\ntotal_windows }}\n",
                             "icon": "mdi:currency-eur",
                             "multiline_secondary": true,
                             "icon_color": "{% set total_cost = state_attr('sensor.cew_tomorrow', 'planned_total_cost') | float(0) %}\n{% if total_cost < 0 %}green\n{% elif total_cost > 0 %}red\n{% else %}grey\n{% endif %}\n",
