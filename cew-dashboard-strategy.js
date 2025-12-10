@@ -24,7 +24,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         "cards": [
                           {
                             "type": "custom:mushroom-template-card",
-                            "primary": "Average Price",
+                            "primary": "Average (Day)",
                             "secondary": "{% set priceSensor = states['sensor.cew_price_sensor_proxy'] %} {% set add = states('number.cew_additional_cost') | float(0.02398) %} {% set tax = states('number.cew_tax') | float(0.12286) %} {% set vat = states('number.cew_vat') | float if states('number.cew_vat') not in ['unknown', 'unavailable', 'none'] else 0.21 %} {% set pricing_mode = states('select.cew_pricing_window_duration') | default('15_minutes') %} {% set ns = namespace(prices=[]) %} {% if priceSensor.attributes.raw_today %} {% if pricing_mode == '1_hour' %} {% for hour in range(24) %} {% set hour_sum = namespace(value=0, count=0) %} {% set hour_str = '%02d' | format(hour) %} {% for item in priceSensor.attributes.raw_today %} {% set timestamp = item.start | replace('\"', '') %} {% if timestamp[11:13] == hour_str %} {% set hour_sum.value = hour_sum.value + item.value %} {% set hour_sum.count = hour_sum.count + 1 %} {% endif %} {% endfor %} {% if hour_sum.count > 0 %} {% set avg_value = hour_sum.value / hour_sum.count %} {% set actual_price = avg_value * (1 + vat) + tax + add %} {% set ns.prices = ns.prices + [actual_price] %} {% endif %} {% endfor %} {% else %}\n  {% for item in priceSensor.attributes.raw_today %}\n    {% set actual_price = (item.value | float(0)) * (1 + vat) + tax + add %}\n    {% set ns.prices = ns.prices + [actual_price] %}\n  {% endfor %} {% endif %}\n{% endif %} {% set avg_price = (ns.prices | sum / ns.prices | length) if ns.prices | length > 0 else 0 %} €{{ avg_price | round(3) }}/kWh",
                             "icon": "mdi:chart-line-variant",
                             "tap_action": {
@@ -37,8 +37,8 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "primary": "Cheap Avg",
-                            "secondary": "€{{ state_attr('sensor.cew_today', 'avg_cheap_price') | float(0) | round(3) }}/kWh",
+                            "primary": "{% set windows = state_attr('sensor.cew_today', 'cheapest_times') | default([], true) %} {% if windows | length > 0 %}Cheap ({{ windows | length }}){% else %}Cheap Avg (Day){% endif %}",
+                            "secondary": "{% set windows = state_attr('sensor.cew_today', 'cheapest_times') | default([], true) %} {% if windows | length > 0 %}\n  €{{ state_attr('sensor.cew_today', 'avg_cheap_price') | float(0) | round(3) }}/kWh\n{% else %}\n  {% set add = states('number.cew_additional_cost') | float(0.02398) %}\n  {% set tax = states('number.cew_tax') | float(0.12286) %}\n  {% set vat = states('number.cew_vat') | float if states('number.cew_vat') not in ['unknown', 'unavailable', 'none'] else 0.21 %}\n  {% set prices = state_attr('sensor.cew_price_sensor_proxy', 'raw_today') | default([], true) %}\n  {% if prices | length > 0 %}\n    {% set values = prices | map(attribute='value') | list | sort %}\n    {% set half = (values | length / 2) | int %}\n    {% set cheap_values = values[:half] if half > 0 else values %}\n    {% set cheap_avg_raw = cheap_values | sum / cheap_values | length %}\n    €{{ (cheap_avg_raw * (1 + vat) + tax + add) | round(3) }}/kWh\n  {% else %}€0.00/kWh{% endif %}\n{% endif %}",
                             "icon": "mdi:arrow-down-circle",
                             "tap_action": {
                               "action": "none"
@@ -49,8 +49,8 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "primary": "Expensive Avg",
-                            "secondary": "€{{ state_attr('sensor.cew_today', 'avg_expensive_price') | float(0) | round(3) }}/kWh",
+                            "primary": "{% set windows = state_attr('sensor.cew_today', 'expensive_times') | default([], true) %} {% if windows | length > 0 %}Expensive ({{ windows | length }}){% else %}Expensive Avg (Day){% endif %}",
+                            "secondary": "{% set windows = state_attr('sensor.cew_today', 'expensive_times') | default([], true) %} {% if windows | length > 0 %}\n  €{{ state_attr('sensor.cew_today', 'avg_expensive_price') | float(0) | round(3) }}/kWh\n{% else %}\n  {% set add = states('number.cew_additional_cost') | float(0.02398) %}\n  {% set tax = states('number.cew_tax') | float(0.12286) %}\n  {% set vat = states('number.cew_vat') | float if states('number.cew_vat') not in ['unknown', 'unavailable', 'none'] else 0.21 %}\n  {% set prices = state_attr('sensor.cew_price_sensor_proxy', 'raw_today') | default([], true) %}\n  {% if prices | length > 0 %}\n    {% set values = prices | map(attribute='value') | list | sort %}\n    {% set half = (values | length / 2) | int %}\n    {% set expensive_values = values[half:] if half > 0 else values %}\n    {% set expensive_avg_raw = expensive_values | sum / expensive_values | length %}\n    €{{ (expensive_avg_raw * (1 + vat) + tax + add) | round(3) }}/kWh\n  {% else %}€0.00/kWh{% endif %}\n{% endif %}",
                             "icon": "mdi:arrow-up-circle",
                             "tap_action": {
                               "action": "none"
@@ -341,13 +341,13 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         "cards": [
                           {
                             "type": "custom:mushroom-template-card",
-                            "primary": "Spread",
-                            "secondary": "{{ state_attr('sensor.cew_today', 'actual_spread_avg') | float(0) | round(1) }}%",
+                            "primary": "{% set charge_windows = state_attr('sensor.cew_today', 'cheapest_times') | default([], true) %} {% set discharge_windows = state_attr('sensor.cew_today', 'expensive_times') | default([], true) %} {% if charge_windows | length > 0 and discharge_windows | length > 0 %}Spread{% else %}Spread (Day){% endif %}",
+                            "secondary": "{% set charge_windows = state_attr('sensor.cew_today', 'cheapest_times') | default([], true) %} {% set discharge_windows = state_attr('sensor.cew_today', 'expensive_times') | default([], true) %} {% if charge_windows | length > 0 and discharge_windows | length > 0 %}\n  {{ state_attr('sensor.cew_today', 'actual_spread_avg') | float(0) | round(1) }}%\n{% else %}\n  {% set add = states('number.cew_additional_cost') | float(0.02398) %}\n  {% set tax = states('number.cew_tax') | float(0.12286) %}\n  {% set vat = states('number.cew_vat') | float if states('number.cew_vat') not in ['unknown', 'unavailable', 'none'] else 0.21 %}\n  {% set prices = state_attr('sensor.cew_price_sensor_proxy', 'raw_today') | default([], true) %}\n  {% if prices | length > 0 %}\n    {% set values = prices | map(attribute='value') | list %}\n    {% set min_raw = values | min %}\n    {% set max_raw = values | max %}\n    {% set min_adj = min_raw * (1 + vat) + tax + add %}\n    {% set max_adj = max_raw * (1 + vat) + tax + add %}\n    {% if min_adj > 0 %}{{ (((max_adj - min_adj) / min_adj) * 100) | round(1) }}%{% else %}0%{% endif %}\n  {% else %}0%{% endif %}\n{% endif %}",
                             "icon": "mdi:percent",
                             "tap_action": {
                               "action": "none"
                             },
-                            "color": "{% if state_attr('sensor.cew_today', 'actual_spread_avg') | float(0) >= 30 %}green\n{% elif state_attr('sensor.cew_today', 'actual_spread_avg') | float(0) >= 15 %}orange\n{% else %}red\n{% endif %}\n",
+                            "color": "{% set charge_windows = state_attr('sensor.cew_today', 'cheapest_times') | default([], true) %} {% set discharge_windows = state_attr('sensor.cew_today', 'expensive_times') | default([], true) %} {% if charge_windows | length > 0 and discharge_windows | length > 0 %}\n  {% set spread = state_attr('sensor.cew_today', 'actual_spread_avg') | float(0) %}\n{% else %}\n  {% set add = states('number.cew_additional_cost') | float(0.02398) %}\n  {% set tax = states('number.cew_tax') | float(0.12286) %}\n  {% set vat = states('number.cew_vat') | float if states('number.cew_vat') not in ['unknown', 'unavailable', 'none'] else 0.21 %}\n  {% set prices = state_attr('sensor.cew_price_sensor_proxy', 'raw_today') | default([], true) %}\n  {% if prices | length > 0 %}\n    {% set values = prices | map(attribute='value') | list %}\n    {% set min_raw = values | min %}\n    {% set max_raw = values | max %}\n    {% set min_adj = min_raw * (1 + vat) + tax + add %}\n    {% set max_adj = max_raw * (1 + vat) + tax + add %}\n    {% set spread = (((max_adj - min_adj) / min_adj) * 100) if min_adj > 0 else 0 %}\n  {% else %}{% set spread = 0 %}{% endif %}\n{% endif %} {% if spread >= 30 %}green{% elif spread >= 15 %}orange{% else %}red{% endif %}\n",
                             "vertical": true,
                             "features_position": "bottom"
                           },
@@ -553,7 +553,7 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         "cards": [
                           {
                             "type": "custom:mushroom-template-card",
-                            "primary": "Average Price",
+                            "primary": "Average (Day)",
                             "secondary": "{% set priceSensor = states['sensor.cew_price_sensor_proxy'] %} {% set add = states('number.cew_additional_cost') | float(0.02398) %} {% set tax = states('number.cew_tax') | float(0.12286) %} {% set vat = states('number.cew_vat') | float if states('number.cew_vat') not in ['unknown', 'unavailable', 'none'] else 0.21 %} {% set pricing_mode = states('select.cew_pricing_window_duration') | default('15_minutes') %} {% set ns = namespace(prices=[]) %} {% if priceSensor.attributes.raw_tomorrow %} {% if pricing_mode == '1_hour' %} {% for hour in range(24) %} {% set hour_sum = namespace(value=0, count=0) %} {% set hour_str = '%02d' | format(hour) %} {% for item in priceSensor.attributes.raw_tomorrow %} {% set timestamp = item.start | replace('\"', '') %} {% if timestamp[11:13] == hour_str %} {% set hour_sum.value = hour_sum.value + item.value %} {% set hour_sum.count = hour_sum.count + 1 %} {% endif %} {% endfor %} {% if hour_sum.count > 0 %} {% set avg_value = hour_sum.value / hour_sum.count %} {% set actual_price = avg_value * (1 + vat) + tax + add %} {% set ns.prices = ns.prices + [actual_price] %} {% endif %} {% endfor %} {% else %}\n  {% for item in priceSensor.attributes.raw_tomorrow %}\n    {% set actual_price = (item.value | float(0)) * (1 + vat) + tax + add %}\n    {% set ns.prices = ns.prices + [actual_price] %}\n  {% endfor %} {% endif %}\n{% endif %} {% set avg_price = (ns.prices | sum / ns.prices | length) if ns.prices | length > 0 else 0 %} €{{ avg_price | round(3) }}/kWh",
                             "icon": "mdi:chart-line-variant",
                             "tap_action": {
@@ -566,8 +566,8 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "primary": "Cheap Avg",
-                            "secondary": "€{{ state_attr('sensor.cew_tomorrow', 'avg_cheap_price') | float(0) | round(3) }}/kWh",
+                            "primary": "{% set windows = state_attr('sensor.cew_tomorrow', 'cheapest_times') | default([], true) %} {% if windows | length > 0 %}Cheap ({{ windows | length }}){% else %}Cheap Avg (Day){% endif %}",
+                            "secondary": "{% set windows = state_attr('sensor.cew_tomorrow', 'cheapest_times') | default([], true) %} {% if windows | length > 0 %}\n  €{{ state_attr('sensor.cew_tomorrow', 'avg_cheap_price') | float(0) | round(3) }}/kWh\n{% else %}\n  {% set add = states('number.cew_additional_cost') | float(0.02398) %}\n  {% set tax = states('number.cew_tax') | float(0.12286) %}\n  {% set vat = states('number.cew_vat') | float if states('number.cew_vat') not in ['unknown', 'unavailable', 'none'] else 0.21 %}\n  {% set prices = state_attr('sensor.cew_price_sensor_proxy', 'raw_tomorrow') | default([], true) %}\n  {% if prices | length > 0 %}\n    {% set values = prices | map(attribute='value') | list | sort %}\n    {% set half = (values | length / 2) | int %}\n    {% set cheap_values = values[:half] if half > 0 else values %}\n    {% set cheap_avg_raw = cheap_values | sum / cheap_values | length %}\n    €{{ (cheap_avg_raw * (1 + vat) + tax + add) | round(3) }}/kWh\n  {% else %}€0.00/kWh{% endif %}\n{% endif %}",
                             "icon": "mdi:arrow-down-circle",
                             "tap_action": {
                               "action": "none"
@@ -578,8 +578,8 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                           },
                           {
                             "type": "custom:mushroom-template-card",
-                            "primary": "Expensive Avg",
-                            "secondary": "€{{ state_attr('sensor.cew_tomorrow', 'avg_expensive_price') | float(0) | round(3) }}/kWh",
+                            "primary": "{% set windows = state_attr('sensor.cew_tomorrow', 'expensive_times') | default([], true) %} {% if windows | length > 0 %}Expensive ({{ windows | length }}){% else %}Expensive Avg (Day){% endif %}",
+                            "secondary": "{% set windows = state_attr('sensor.cew_tomorrow', 'expensive_times') | default([], true) %} {% if windows | length > 0 %}\n  €{{ state_attr('sensor.cew_tomorrow', 'avg_expensive_price') | float(0) | round(3) }}/kWh\n{% else %}\n  {% set add = states('number.cew_additional_cost') | float(0.02398) %}\n  {% set tax = states('number.cew_tax') | float(0.12286) %}\n  {% set vat = states('number.cew_vat') | float if states('number.cew_vat') not in ['unknown', 'unavailable', 'none'] else 0.21 %}\n  {% set prices = state_attr('sensor.cew_price_sensor_proxy', 'raw_tomorrow') | default([], true) %}\n  {% if prices | length > 0 %}\n    {% set values = prices | map(attribute='value') | list | sort %}\n    {% set half = (values | length / 2) | int %}\n    {% set expensive_values = values[half:] if half > 0 else values %}\n    {% set expensive_avg_raw = expensive_values | sum / expensive_values | length %}\n    €{{ (expensive_avg_raw * (1 + vat) + tax + add) | round(3) }}/kWh\n  {% else %}€0.00/kWh{% endif %}\n{% endif %}",
                             "icon": "mdi:arrow-up-circle",
                             "tap_action": {
                               "action": "none"
@@ -880,13 +880,13 @@ class CheapestEnergyWindowsStrategy extends HTMLElement {
                         "cards": [
                           {
                             "type": "custom:mushroom-template-card",
-                            "primary": "Spread",
-                            "secondary": "{{ state_attr('sensor.cew_tomorrow', 'spread_percentage') | float(0) | round(1) }}%",
+                            "primary": "{% set charge_windows = state_attr('sensor.cew_tomorrow', 'cheapest_times') | default([], true) %} {% set discharge_windows = state_attr('sensor.cew_tomorrow', 'expensive_times') | default([], true) %} {% if charge_windows | length > 0 and discharge_windows | length > 0 %}Spread{% else %}Spread (Day){% endif %}",
+                            "secondary": "{% set charge_windows = state_attr('sensor.cew_tomorrow', 'cheapest_times') | default([], true) %} {% set discharge_windows = state_attr('sensor.cew_tomorrow', 'expensive_times') | default([], true) %} {% if charge_windows | length > 0 and discharge_windows | length > 0 %}\n  {{ state_attr('sensor.cew_tomorrow', 'spread_percentage') | float(0) | round(1) }}%\n{% else %}\n  {% set add = states('number.cew_additional_cost') | float(0.02398) %}\n  {% set tax = states('number.cew_tax') | float(0.12286) %}\n  {% set vat = states('number.cew_vat') | float if states('number.cew_vat') not in ['unknown', 'unavailable', 'none'] else 0.21 %}\n  {% set prices = state_attr('sensor.cew_price_sensor_proxy', 'raw_tomorrow') | default([], true) %}\n  {% if prices | length > 0 %}\n    {% set values = prices | map(attribute='value') | list %}\n    {% set min_raw = values | min %}\n    {% set max_raw = values | max %}\n    {% set min_adj = min_raw * (1 + vat) + tax + add %}\n    {% set max_adj = max_raw * (1 + vat) + tax + add %}\n    {% if min_adj > 0 %}{{ (((max_adj - min_adj) / min_adj) * 100) | round(1) }}%{% else %}0%{% endif %}\n  {% else %}0%{% endif %}\n{% endif %}",
                             "icon": "mdi:percent",
                             "tap_action": {
                               "action": "none"
                             },
-                            "color": "{% if state_attr('sensor.cew_tomorrow', 'spread_percentage') | float(0) >= 30 %}green\n{% elif state_attr('sensor.cew_tomorrow', 'spread_percentage') | float(0) >= 15 %}orange\n{% else %}red\n{% endif %}\n",
+                            "color": "{% set charge_windows = state_attr('sensor.cew_tomorrow', 'cheapest_times') | default([], true) %} {% set discharge_windows = state_attr('sensor.cew_tomorrow', 'expensive_times') | default([], true) %} {% if charge_windows | length > 0 and discharge_windows | length > 0 %}\n  {% set spread = state_attr('sensor.cew_tomorrow', 'spread_percentage') | float(0) %}\n{% else %}\n  {% set add = states('number.cew_additional_cost') | float(0.02398) %}\n  {% set tax = states('number.cew_tax') | float(0.12286) %}\n  {% set vat = states('number.cew_vat') | float if states('number.cew_vat') not in ['unknown', 'unavailable', 'none'] else 0.21 %}\n  {% set prices = state_attr('sensor.cew_price_sensor_proxy', 'raw_tomorrow') | default([], true) %}\n  {% if prices | length > 0 %}\n    {% set values = prices | map(attribute='value') | list %}\n    {% set min_raw = values | min %}\n    {% set max_raw = values | max %}\n    {% set min_adj = min_raw * (1 + vat) + tax + add %}\n    {% set max_adj = max_raw * (1 + vat) + tax + add %}\n    {% set spread = (((max_adj - min_adj) / min_adj) * 100) if min_adj > 0 else 0 %}\n  {% else %}{% set spread = 0 %}{% endif %}\n{% endif %} {% if spread >= 30 %}green{% elif spread >= 15 %}orange{% else %}red{% endif %}\n",
                             "vertical": true,
                             "features_position": "bottom"
                           },
