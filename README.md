@@ -62,7 +62,7 @@ Click the button above to open this dashboard directly in HACS, then click "Down
 
 ```yaml
 strategy:
-  type: custom:dashboard-cheapest-energy-windows
+  type: custom:cheapest-energy-windows
 views: []
 ```
 
